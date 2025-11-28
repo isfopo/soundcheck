@@ -1,21 +1,20 @@
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{Arc, Mutex};
-use tokio;
+use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
+};
 use ratatui::{
+    Terminal,
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Terminal,
-};
-use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 /// A terminal application that monitors audio input and detects when it exceeds a threshold.
@@ -35,13 +34,64 @@ struct Args {
 struct AppState {
     device_name: String,
     current_db: f32,
+    smoothed_db: f32,
+    display_db: f32, // Extra smoothing for display
     threshold_db: i32,
     status: String,
     threshold_reached: bool,
 }
 
+fn create_db_labels(width: usize, threshold_db: i32) -> Line<'static> {
+    let mut spans = Vec::new();
+
+    // Calculate threshold position (threshold_db ranges from -60 to 0)
+    let threshold_ratio = ((threshold_db as f64 + 60.0) / 60.0).clamp(0.0, 1.0);
+    let threshold_pos = (threshold_ratio * (width - 1) as f64).round() as usize;
+
+    for i in 0..width {
+        // Check if this position should show the threshold marker
+        if i == threshold_pos {
+            // Show threshold marker with bright color
+            spans.push(Span::styled("▲".to_string(), Style::default().fg(Color::White)));
+            continue;
+        }
+
+        // Calculate which label to show at this position
+        let label = if i == 0 {
+            // Always show -60 at the start
+            "-60".to_string()
+        } else if i == width - 1 {
+            // Always show 0 at the end
+            "0".to_string()
+        } else if i == width / 3 {
+            // Show -40 at 1/3 position
+            "-40".to_string()
+        } else if i == 2 * width / 3 {
+            // Show -20 at 2/3 position
+            "-20".to_string()
+        } else {
+            // No label at this position
+            " ".to_string()
+        };
+
+        // Color the labels to match the bar colors at this position
+        let color = if i < width / 3 {
+            Color::Green
+        } else if i < 2 * width / 3 {
+            Color::Yellow
+        } else {
+            Color::Red
+        };
+
+        spans.push(Span::styled(label, Style::default().fg(color)));
+    }
+
+    Line::from(spans)
+}
+
 fn create_gradient_bar(width: usize, ratio: f64) -> Line<'static> {
     let filled = (ratio * width as f64) as usize;
+    let partial_fill = (ratio * width as f64) - filled as f64;
     let mut spans = Vec::new();
 
     for i in 0..width {
@@ -52,7 +102,24 @@ fn create_gradient_bar(width: usize, ratio: f64) -> Line<'static> {
         } else {
             Color::Red
         };
-        let ch = if i < filled { '█' } else { '░' };
+
+        let ch = if i < filled {
+            '█' // Fully filled
+        } else if i == filled && partial_fill > 0.0 {
+            // Partial fill characters for smoother appearance
+            match (partial_fill * 8.0) as usize {
+                0 => '░',
+                1 => '░',
+                2 => '▒',
+                3 => '▒',
+                4 => '▓',
+                5 => '▓',
+                6 => '█',
+                _ => '█',
+            }
+        } else {
+            '░' // Empty
+        };
         spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
     }
 
@@ -83,7 +150,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .find(|d| d.name().map(|n| n == name).unwrap_or(false))
             .ok_or("Device not found")?
     } else {
-        host.default_input_device().ok_or("No default input device")?
+        host.default_input_device()
+            .ok_or("No default input device")?
     };
 
     let device_name = device.name()?;
@@ -104,6 +172,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(Mutex::new(AppState {
         device_name: device_name.clone(),
         current_db: -60.0,
+        smoothed_db: -60.0,
+        display_db: -60.0,
         threshold_db: db_threshold,
         status: format!("Monitoring {}... Press Ctrl+C to quit.", device_name),
         threshold_reached: false,
@@ -131,16 +201,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut state = state_clone.lock().unwrap();
             state.current_db = current_db;
 
+            // Two-stage smoothing for ultra-smooth display
+            // First stage: moderate smoothing of raw audio data
+            const AUDIO_SMOOTHING: f32 = 0.4;
+            state.smoothed_db =
+                state.smoothed_db * (1.0 - AUDIO_SMOOTHING) + current_db * AUDIO_SMOOTHING;
+
+            // Second stage: heavy smoothing for display (easing effect)
+            const DISPLAY_SMOOTHING: f32 = 0.15;
+            state.display_db = state.display_db * (1.0 - DISPLAY_SMOOTHING) + state.smoothed_db * DISPLAY_SMOOTHING;
+
             let mut is_above = is_above_clone.lock().unwrap();
             if max_sample > linear_threshold_clone {
                 if !*is_above {
                     state.threshold_reached = true;
                     *is_above = true;
                 }
-            } else {
-                if *is_above {
-                    *is_above = false;
-                }
+            } else if *is_above {
+                *is_above = false;
             }
         },
         move |err| {
@@ -153,8 +231,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start stream
     stream.play()?;
 
-    // UI loop
-    let mut interval = tokio::time::interval(Duration::from_millis(100));
+    // UI loop - very fast updates for ultra-smooth display
+    let mut interval = tokio::time::interval(Duration::from_millis(10));
     loop {
         tokio::select! {
             _ = interval.tick() => {
@@ -203,12 +281,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let threshold_text = Paragraph::new(format!("Threshold: {} dB\n{}", state.threshold_db, bar));
                     f.render_widget(threshold_text, chunks[2]);
 
-                    // dB bar
-                    let db_ratio = ((state.current_db + 60.0) / 60.0).clamp(0.0, 1.0) as f64;
+                    // dB bar with labels
+                    let db_ratio = ((state.display_db + 60.0) / 60.0).clamp(0.0, 1.0) as f64;
                     let bar_width = (chunks[3].width - 2) as usize; // account for borders
                     let bar_line = create_gradient_bar(bar_width, db_ratio);
-                    let gauge = Paragraph::new(vec![bar_line])
-                        .block(Block::default().title(format!("Current dB: {:.1}", state.current_db)).borders(Borders::ALL));
+                    let label_line = create_db_labels(bar_width, state.threshold_db);
+                    let gauge = Paragraph::new(vec![bar_line, label_line])
+                        .block(Block::default().title(format!("Current dB: {:.1} (Raw: {:.1})", state.display_db, state.current_db)).borders(Borders::ALL));
                     f.render_widget(gauge, chunks[3]);
                 })?;
 
