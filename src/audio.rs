@@ -1,5 +1,6 @@
 //! Audio device handling and stream processing
 
+use crate::error::{AppError, AppResult};
 use cpal::traits::{DeviceTrait, HostTrait};
 use std::sync::{Arc, Mutex};
 
@@ -11,7 +12,7 @@ pub struct AudioConfig {
 }
 
 /// Find and configure an audio input device
-pub fn setup_audio_device(device_name: Option<String>) -> Result<(cpal::Device, AudioConfig), Box<dyn std::error::Error>> {
+pub fn setup_audio_device(device_name: Option<String>) -> AppResult<(cpal::Device, AudioConfig)> {
     // Setup audio
     let host = cpal::default_host();
 
@@ -19,27 +20,18 @@ pub fn setup_audio_device(device_name: Option<String>) -> Result<(cpal::Device, 
     let device = if let Some(name) = device_name {
         host.input_devices()?
             .find(|d| d.name().map(|n| n == name).unwrap_or(false))
-            .ok_or("Device not found")?
+            .ok_or_else(|| AppError::AudioDevice("Specified device not found".to_string()))?
     } else {
         host.default_input_device()
-            .ok_or("No default input device")?
+            .ok_or_else(|| AppError::AudioDevice("No default input device available".to_string()))?
     };
 
     let device_name = device.name()?;
 
-    // Get supported config - use f32, mono, 44100 for simplicity
-    let sample_rate = 44100;
-    let channels = 1;
-    let _config = cpal::StreamConfig {
-        channels,
-        sample_rate: cpal::SampleRate(sample_rate),
-        buffer_size: cpal::BufferSize::Default,
-    };
-
     let audio_config = AudioConfig {
         device_name,
-        sample_rate,
-        channels,
+        sample_rate: crate::constants::audio::DEFAULT_SAMPLE_RATE,
+        channels: crate::constants::audio::DEFAULT_CHANNELS,
     };
 
     Ok((device, audio_config))
@@ -50,7 +42,7 @@ pub fn build_audio_stream<F>(
     device: &cpal::Device,
     config: &cpal::StreamConfig,
     data_callback: F,
-) -> Result<cpal::Stream, Box<dyn std::error::Error>>
+) -> AppResult<cpal::Stream>
 where
     F: FnMut(&[f32], &cpal::InputCallbackInfo) + Send + 'static,
 {
@@ -88,11 +80,11 @@ pub fn create_audio_callback(
         let mut display = display_db.lock().unwrap();
 
         // Two-stage smoothing
-        const AUDIO_SMOOTHING: f32 = 0.4;
-        *smoothed = *smoothed * (1.0 - AUDIO_SMOOTHING) + current_db_value * AUDIO_SMOOTHING;
+        let audio_smoothing = crate::constants::smoothing::AUDIO_SMOOTHING_FACTOR;
+        *smoothed = *smoothed * (1.0 - audio_smoothing) + current_db_value * audio_smoothing;
 
-        const DISPLAY_SMOOTHING: f32 = 0.15;
-        *display = *display * (1.0 - DISPLAY_SMOOTHING) + *smoothed * DISPLAY_SMOOTHING;
+        let display_smoothing = crate::constants::smoothing::DISPLAY_SMOOTHING_FACTOR;
+        *display = *display * (1.0 - display_smoothing) + *smoothed * display_smoothing;
 
         // Check threshold
         let mut threshold_flag = threshold_reached.lock().unwrap();

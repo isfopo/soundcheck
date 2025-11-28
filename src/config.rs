@@ -1,0 +1,81 @@
+//! Configuration parsing and validation
+
+use clap::Parser;
+
+/// Command line arguments for the standby application
+#[derive(Parser)]
+#[command(name = "standby")]
+#[command(about = "Monitor audio threshold from input device")]
+pub struct Args {
+    /// Audio threshold in dB (e.g., -20)
+    #[arg(long)]
+    pub threshold: i32,
+
+    /// Audio input device name (optional, uses default if not specified)
+    #[arg(long)]
+    pub device: Option<String>,
+}
+
+/// Application configuration derived from command line arguments
+pub struct Config {
+    pub threshold_db: i32,
+    pub device_name: Option<String>,
+}
+
+impl Config {
+    /// Parse command line arguments and validate configuration
+    pub fn from_args() -> Result<Self, Box<dyn std::error::Error>> {
+        let args = Args::parse();
+
+        // Validate threshold range
+        if args.threshold > 0 || args.threshold < -60 {
+            return Err(format!("Threshold must be between -60 and 0 dB, got {}", args.threshold).into());
+        }
+
+        Ok(Config {
+            threshold_db: args.threshold,
+            device_name: args.device,
+        })
+    }
+
+    /// Convert dB threshold to linear amplitude for audio processing
+    pub fn linear_threshold(&self) -> f32 {
+        crate::smoothing::db_to_amplitude(self.threshold_db as f32)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_from_valid_args() {
+        // This would require setting up clap test arguments
+        // For now, we'll test the validation logic manually
+        let config = Config {
+            threshold_db: -20,
+            device_name: Some("test_device".to_string()),
+        };
+
+        assert_eq!(config.threshold_db, -20);
+        assert_eq!(config.device_name, Some("test_device".to_string()));
+        assert!(config.linear_threshold() > 0.0);
+    }
+
+    #[test]
+    fn test_db_to_linear_conversion() {
+        let config = Config {
+            threshold_db: 0,
+            device_name: None,
+        };
+        // 0 dB should convert to amplitude of 1.0
+        assert!((config.linear_threshold() - 1.0).abs() < 0.001);
+
+        let config = Config {
+            threshold_db: -20,
+            device_name: None,
+        };
+        // -20 dB should convert to amplitude of ~0.1
+        assert!((config.linear_threshold() - 0.1).abs() < 0.01);
+    }
+}

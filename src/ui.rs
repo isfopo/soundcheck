@@ -13,7 +13,6 @@ use ratatui::{
 pub struct UiState {
     pub device_name: String,
     pub current_db: f32,
-    pub smoothed_db: f32,
     pub display_db: f32,
     pub threshold_db: i32,
     pub status: String,
@@ -150,9 +149,11 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
     let threshold_text = Paragraph::new(format!("Threshold: {} dB\n{}", state.threshold_db, bar));
     f.render_widget(threshold_text, chunks[2]);
 
-    // dB bar with labels
-    let db_ratio = ((state.display_db + 60.0) / 60.0).clamp(0.0, 1.0) as f64;
-    let bar_width = (chunks[3].width - 2) as usize; // account for borders
+                    // dB bar with labels
+                    let min_db = crate::constants::audio::MIN_DB_LEVEL;
+                    let db_range = -min_db; // Range from MIN_DB_LEVEL to 0
+                    let db_ratio = ((state.display_db - min_db) / db_range).clamp(0.0, 1.0) as f64;
+                    let bar_width = (chunks[3].width as usize).saturating_sub(crate::constants::ui::BAR_BORDER_WIDTH);
     let bar_line = create_gradient_bar(bar_width, db_ratio);
     let label_line = create_db_labels(bar_width, state.threshold_db);
     let gauge = Paragraph::new(vec![bar_line, label_line])
