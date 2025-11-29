@@ -3,9 +3,12 @@
 use std::sync::{Arc, Mutex};
 
 /// Type alias for audio processing shared state references
-pub type AudioStateRefs = (Arc<Mutex<f32>>, Arc<Mutex<f32>>, Arc<Mutex<f32>>, Arc<Mutex<bool>>);
-
-
+pub type AudioStateRefs = (
+    Arc<Mutex<f32>>,
+    Arc<Mutex<f32>>,
+    Arc<Mutex<f32>>,
+    Arc<Mutex<bool>>,
+);
 
 /// Internal application state
 pub struct AppState {
@@ -27,12 +30,13 @@ impl AppState {
             smoothed_db: crate::constants::audio::MIN_DB_LEVEL,
             display_db: crate::constants::audio::MIN_DB_LEVEL,
             threshold_db,
-            status: format!("Monitoring {}... Press Ctrl+C or Escape to quit.", device_name),
+            status: format!(
+                "Monitoring {}... Press Ctrl+C or Escape to quit.",
+                device_name
+            ),
             threshold_reached: false,
         }
     }
-
-
 
     /// Update state from shared audio processing values
     pub fn update_from_audio(

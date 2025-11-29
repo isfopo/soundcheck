@@ -27,4 +27,3 @@ pub mod smoothing {
     /// Second stage display smoothing factor (lower = smoother)
     pub const DISPLAY_SMOOTHING_FACTOR: f32 = 0.15;
 }
-

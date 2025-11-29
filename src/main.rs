@@ -7,7 +7,6 @@ mod smoothing;
 mod state;
 mod ui;
 
-
 #[tokio::main]
 async fn main() {
     use app::ExitCode;
@@ -32,5 +31,3 @@ async fn main() {
         }
     }
 }
-
-

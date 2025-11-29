@@ -1,11 +1,11 @@
 //! UI rendering and layout utilities
 
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 /// Application state for UI rendering
@@ -68,7 +68,10 @@ pub fn create_db_labels(width: usize, threshold_db: i32) -> Line<'static> {
         // Check if this position should show the threshold marker
         if i == threshold_pos {
             // Show threshold marker with bright color
-            spans.push(Span::styled("▲".to_string(), Style::default().fg(Color::White)));
+            spans.push(Span::styled(
+                "▲".to_string(),
+                Style::default().fg(Color::White),
+            ));
             continue;
         }
 
@@ -120,24 +123,19 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
         .split(size);
 
     // Device and status
-    let device_block = Block::default()
-        .title("Device")
-        .borders(Borders::ALL);
-    let device_text = Paragraph::new(state.device_name.as_str())
-        .block(device_block);
+    let device_block = Block::default().title("Device").borders(Borders::ALL);
+    let device_text = Paragraph::new(state.device_name.as_str()).block(device_block);
     f.render_widget(device_text, chunks[0]);
 
     // Status
-    let status_block = Block::default()
-        .title("Status")
-        .borders(Borders::ALL);
-    let status_text = Paragraph::new(state.status.as_str())
-        .block(status_block);
+    let status_block = Block::default().title("Status").borders(Borders::ALL);
+    let status_text = Paragraph::new(state.status.as_str()).block(status_block);
     f.render_widget(status_text, chunks[1]);
 
     // Threshold indicator
     let width = chunks[2].width as usize;
-    let threshold_pos = (((state.threshold_db as f32 + 60.0) / 60.0).clamp(0.0, 1.0) * (width - 2) as f32) as usize;
+    let threshold_pos =
+        (((state.threshold_db as f32 + 60.0) / 60.0).clamp(0.0, 1.0) * (width - 2) as f32) as usize;
     let mut bar = String::new();
     for i in 0..(width - 2) {
         if i == threshold_pos {
@@ -149,14 +147,21 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
     let threshold_text = Paragraph::new(format!("Threshold: {} dB\n{}", state.threshold_db, bar));
     f.render_widget(threshold_text, chunks[2]);
 
-                    // dB bar with labels
-                    let min_db = crate::constants::audio::MIN_DB_LEVEL;
-                    let db_range = -min_db; // Range from MIN_DB_LEVEL to 0
-                    let db_ratio = ((state.display_db - min_db) / db_range).clamp(0.0, 1.0) as f64;
-                    let bar_width = (chunks[3].width as usize).saturating_sub(crate::constants::ui::BAR_BORDER_WIDTH);
+    // dB bar with labels
+    let min_db = crate::constants::audio::MIN_DB_LEVEL;
+    let db_range = -min_db; // Range from MIN_DB_LEVEL to 0
+    let db_ratio = ((state.display_db - min_db) / db_range).clamp(0.0, 1.0) as f64;
+    let bar_width =
+        (chunks[3].width as usize).saturating_sub(crate::constants::ui::BAR_BORDER_WIDTH);
     let bar_line = create_gradient_bar(bar_width, db_ratio);
     let label_line = create_db_labels(bar_width, state.threshold_db);
-    let gauge = Paragraph::new(vec![bar_line, label_line])
-        .block(Block::default().title(format!("Current dB: {:.1} (Raw: {:.1})", state.display_db, state.current_db)).borders(Borders::ALL));
+    let gauge = Paragraph::new(vec![bar_line, label_line]).block(
+        Block::default()
+            .title(format!(
+                "Current dB: {:.1} (Raw: {:.1})",
+                state.display_db, state.current_db
+            ))
+            .borders(Borders::ALL),
+    );
     f.render_widget(gauge, chunks[3]);
 }

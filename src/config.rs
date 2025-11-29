@@ -29,7 +29,11 @@ impl Config {
 
         // Validate threshold range
         if args.threshold > 0 || args.threshold < -60 {
-            return Err(format!("Threshold must be between -60 and 0 dB, got {}", args.threshold).into());
+            return Err(format!(
+                "Threshold must be between -60 and 0 dB, got {}",
+                args.threshold
+            )
+            .into());
         }
 
         Ok(Config {
