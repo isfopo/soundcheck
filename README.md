@@ -15,15 +15,19 @@ A terminal-based audio monitoring application that displays real-time audio leve
 
 ## Installation 🚀
 
-### From Crates.io (when published)
-
+### From Crates.io
 ```bash
 cargo install standby
 ```
 
-### From Homebrew (when available)
+### From Homebrew
 
 ```bash
+# Option 1: Direct install (when formula is in homebrew-core)
+brew install standby
+
+# Option 2: From personal tap
+brew tap username/standby-homebrew-tap
 brew install standby
 ```
 

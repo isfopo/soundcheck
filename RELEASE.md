@@ -49,11 +49,29 @@ The GitHub Actions workflow automatically:
 - Generates SHA256 checksums for security
 - Includes release notes and download links
 
+### 📦 Crates.io Publishing
+
+- Publishes the Rust crate to [crates.io](https://crates.io/)
+- Makes the library available for other Rust projects
+- Enables `cargo install standby` for users
+
 ### 🍺 Homebrew Publishing (Optional)
 
 - Generates a Homebrew formula with correct URLs and hashes
 - Updates your personal Homebrew tap (if configured)
 - Can submit pull requests to homebrew-core (requires maintainer access)
+
+## Setting Up Publishing
+
+### Crates.io Token
+1. **Create API token**:
+   - Go to [crates.io/me](https://crates.io/me) → API Tokens
+   - Click "New Token"
+   - Give it a name like "GitHub Actions Release"
+
+2. **Add repository secret**:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Add `CRATES_IO_TOKEN` with your API token
 
 ## Setting Up Homebrew Publishing
 
@@ -107,6 +125,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 - ✅ Automated releases
 - ✅ Cross-platform binaries
+- ✅ Crates.io publishing
 - ✅ Homebrew formula generation
 - ✅ Optional tap/core publishing
 
@@ -134,7 +153,17 @@ cargo build --release --target aarch64-apple-darwin
 - Upload built binaries
 - Publish release
 
-### 3. Update Homebrew formula manually
+### 3. Publish to Crates.io manually
+
+```bash
+# Verify the crate can be published
+cargo publish --dry-run
+
+# Publish to crates.io
+cargo publish
+```
+
+### 4. Update Homebrew formula manually
 
 - Generate SHA256 hashes for binaries
 - Update formula URLs and checksums
@@ -153,6 +182,13 @@ cargo build --release --target aarch64-apple-darwin
 - Verify `HOMEBREW_TAP_TOKEN` secret is set
 - Check that the tap repository exists and is accessible
 - Ensure the token has `repo` scope
+
+### Crates.io publishing fails
+
+- Verify `CRATES_IO_TOKEN` secret is set correctly
+- Check that the crate name doesn't conflict with existing crates
+- Ensure all dependencies are published or available
+- Run `cargo publish --dry-run` locally to test
 
 ### Formula submission to homebrew-core fails
 
@@ -173,6 +209,7 @@ When contributing changes that affect releases:
 
 - All release binaries include SHA256 checksums
 - GitHub releases are signed by GitHub's infrastructure
+- Crates.io verifies package integrity and ownership
 - Homebrew formulas verify checksums during installation
 - Consider code signing for enhanced security (future enhancement)</content>
 <parameter name="filePath">RELEASE.md
