@@ -31,6 +31,23 @@ brew tap username/standby-homebrew-tap
 brew install standby
 ```
 
+### From Scoop (Windows)
+
+```bash
+# Add the bucket
+scoop bucket add username-scoop-bucket https://github.com/username/standby-scoop-bucket
+
+# Install standby
+scoop install standby
+```
+
+### From Chocolatey (Windows)
+
+```bash
+# Install standby
+choco install standby
+```
+
 ### From Source
 
 ```bash

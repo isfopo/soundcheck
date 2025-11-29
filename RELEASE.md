@@ -55,6 +55,18 @@ The GitHub Actions workflow automatically:
 - Makes the library available for other Rust projects
 - Enables `cargo install standby` for users
 
+### 🍨 Scoop Publishing (Optional)
+
+- Creates Scoop manifest with automatic updates
+- Publishes to personal Scoop bucket
+- Enables `scoop install standby` on Windows
+
+### 🍫 Chocolatey Publishing (Optional)
+
+- Creates Chocolatey package (.nupkg)
+- Publishes to Chocolatey community repository
+- Enables `choco install standby` on Windows
+
 ### 🍺 Homebrew Publishing (Optional)
 
 - Generates a Homebrew formula with correct URLs and hashes
@@ -73,6 +85,26 @@ The GitHub Actions workflow automatically:
    - Go to repository Settings → Secrets and variables → Actions
    - Add `CRATES_IO_TOKEN` with your API token
 
+### Scoop Bucket Token
+1. **Create a Scoop bucket repository**:
+
+   ```bash
+   ./.github/scripts/setup-scoop-bucket.sh your-github-username
+   ```
+
+2. **Add repository secret**:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Add `SCOOP_BUCKET_TOKEN` with a Personal Access Token (repo scope)
+
+### Chocolatey API Key
+1. **Get Chocolatey API key**:
+   - Sign up at [Chocolatey.org](https://chocolatey.org/)
+   - Go to Account → API Keys
+
+2. **Add repository secret**:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Add `CHOCOLATEY_API_KEY` with your API key
+
 ## Setting Up Homebrew Publishing
 
 ### Option 1: Personal Homebrew Tap
@@ -80,7 +112,7 @@ The GitHub Actions workflow automatically:
 1. **Create a tap repository**:
 
    ```bash
-   ./setup-homebrew-tap.sh your-github-username
+   ./.github/scripts/setup-homebrew-tap.sh your-github-username
    ```
 
 2. **Follow the setup instructions** to create the repository on GitHub
@@ -123,11 +155,21 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 ### Continuous Deployment (on version tags)
 
+The release process is split into separate workflows:
+
+#### **Release Core** (`release-core.yml`)
 - ✅ Automated releases
 - ✅ Cross-platform binaries
 - ✅ Crates.io publishing
+
+#### **Release Homebrew** (`release-homebrew.yml`)
 - ✅ Homebrew formula generation
 - ✅ Optional tap/core publishing
+
+#### **Release Windows** (`release-windows.yml`)
+- ✅ Scoop manifest generation
+- ✅ Chocolatey package creation
+- ✅ Windows package publishing
 
 ## Manual Release Process
 
@@ -163,7 +205,23 @@ cargo publish --dry-run
 cargo publish
 ```
 
-### 4. Update Homebrew formula manually
+### 4. Update Scoop bucket manually
+
+- Generate SHA256 hash for Windows binary
+- Update manifest JSON with new version and hash
+- Commit changes to your bucket repository
+
+### 5. Update Chocolatey package manually
+
+```bash
+# Create .nupkg file
+choco pack standby.nuspec
+
+# Push to Chocolatey
+choco push standby.x.x.x.nupkg --api-key your-api-key
+```
+
+### 6. Update Homebrew formula manually
 
 - Generate SHA256 hashes for binaries
 - Update formula URLs and checksums
@@ -189,6 +247,19 @@ cargo publish
 - Check that the crate name doesn't conflict with existing crates
 - Ensure all dependencies are published or available
 - Run `cargo publish --dry-run` locally to test
+
+### Scoop bucket update fails
+
+- Verify `SCOOP_BUCKET_TOKEN` secret is set
+- Check that the bucket repository exists and is accessible
+- Ensure the manifest follows Scoop JSON schema
+
+### Chocolatey publishing fails
+
+- Verify `CHOCOLATEY_API_KEY` secret is set correctly
+- Check that the package doesn't conflict with existing packages
+- Ensure the .nupkg file was created successfully
+- Review Chocolatey community guidelines
 
 ### Formula submission to homebrew-core fails
 

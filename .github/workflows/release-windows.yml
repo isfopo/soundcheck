@@ -1,0 +1,239 @@
+name: Release Windows
+
+on:
+  workflow_run:
+    workflows: ["Release Core"]
+    types:
+      - completed
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-scoop-manifest:
+    name: Create Scoop Manifest
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get version from workflow run
+      id: get_version
+      run: |
+        # Get the tag from the triggering workflow
+        TAG=$(curl -s "${{ github.event.workflow_run.artifacts_url }}" | jq -r '.artifacts[0].name' | sed 's/binaries-.*//')
+        if [ -z "$TAG" ]; then
+          # Fallback: get latest tag
+          TAG=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
+        fi
+        CLEAN_VERSION="${TAG#v}"
+        echo "version=$TAG" >> $GITHUB_OUTPUT
+        echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Download Windows binary
+      run: |
+        wget -O standby.zip "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/standby-x86_64-pc-windows-msvc.zip"
+        unzip standby.zip
+        ls -la
+
+    - name: Calculate SHA256
+      id: sha256
+      run: |
+        if command -v sha256sum >/dev/null 2>&1; then
+          HASH=$(sha256sum standby.exe | cut -d' ' -f1)
+        else
+          HASH=$(shasum -a 256 standby.exe | cut -d' ' -f1)
+        fi
+        echo "hash=$HASH" >> $GITHUB_OUTPUT
+
+    - name: Create Scoop manifest
+      run: |
+        cat > standby.json << EOF
+        {
+            "version": "${{ steps.get_version.outputs.clean_version }}",
+            "description": "Terminal-based audio monitoring application",
+            "homepage": "https://github.com/${GITHUB_REPOSITORY}",
+            "license": "MIT",
+            "architecture": {
+                "64bit": {
+                    "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/standby-x86_64-pc-windows-msvc.zip",
+                    "hash": "${{ steps.sha256.outputs.hash }}",
+                    "bin": "standby.exe"
+                }
+            },
+            "checkver": {
+                "github": "${GITHUB_REPOSITORY}"
+            },
+            "autoupdate": {
+                "architecture": {
+                    "64bit": {
+                        "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/v\$version/standby-x86_64-pc-windows-msvc.zip"
+                    }
+                }
+            }
+        }
+        EOF
+
+    - name: Upload Scoop manifest
+      uses: actions/upload-artifact@v4
+      with:
+        name: scoop-manifest
+        path: standby.json
+
+  create-choco-package:
+    name: Create Chocolatey Package
+    runs-on: windows-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get version from workflow run
+      id: get_version
+      shell: bash
+      run: |
+        # Get the tag from the triggering workflow
+        TAG=$(curl -s "${{ github.event.workflow_run.artifacts_url }}" | jq -r '.artifacts[0].name' | sed 's/binaries-.*//')
+        if [ -z "$TAG" ]; then
+          # Fallback: get latest tag
+          TAG=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
+        fi
+        CLEAN_VERSION="${TAG#v}"
+        echo "version=$TAG" >> $GITHUB_OUTPUT
+        echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Download Windows binary
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/${env:GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/standby-x86_64-pc-windows-msvc.zip" -OutFile "standby.zip"
+        Expand-Archive -Path "standby.zip" -DestinationPath "."
+
+    - name: Calculate SHA256
+      id: sha256
+      shell: pwsh
+      run: |
+        $hash = Get-FileHash -Path "standby.exe" -Algorithm SHA256
+        echo "hash=$($hash.Hash)" >> $env:GITHUB_OUTPUT
+
+    - name: Create Chocolatey package structure
+      shell: pwsh
+      run: |
+        # Create directory structure
+        New-Item -ItemType Directory -Path "choco/standby/tools" -Force
+
+        # Create chocolateyinstall.ps1
+        @"
+        \$ErrorActionPreference = 'Stop'
+
+        \$toolsDir = Split-Path -Parent \$MyInvocation.MyCommand.Definition
+        \$packageDir = Split-Path -Parent \$toolsDir
+
+        \$url64 = 'https://github.com/${env:GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/standby-x86_64-pc-windows-msvc.zip'
+        \$checksum64 = '${{ steps.sha256.outputs.hash }}'
+        \$checksumType64 = 'sha256'
+
+        Install-ChocolateyZipPackage -PackageName 'standby' -Url64bit \$url64 -UnzipLocation \$packageDir -Checksum64 \$checksum64 -ChecksumType64 \$checksumType64
+        "@ | Out-File -FilePath "choco/standby/tools/chocolateyinstall.ps1" -Encoding UTF8
+
+        # Create standby.nuspec
+        @"
+        <?xml version="1.0" encoding="utf-8"?>
+        <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+          <metadata>
+            <id>standby</id>
+            <version>${{ steps.get_version.outputs.clean_version }}</version>
+            <title>Standby</title>
+            <authors>${GITHUB_REPOSITORY_OWNER}</authors>
+            <description xml:space="preserve">Terminal-based audio monitoring application that displays real-time audio levels and detects when sound exceeds a specified threshold.</description>
+            <projectUrl>https://github.com/${env:GITHUB_REPOSITORY}</projectUrl>
+            <licenseUrl>https://github.com/${env:GITHUB_REPOSITORY}/blob/main/LICENSE</licenseUrl>
+            <requireLicenseAcceptance>false</requireLicenseAcceptance>
+            <tags>audio monitoring terminal cli rust</tags>
+            <releaseNotes>https://github.com/${env:GITHUB_REPOSITORY}/releases/tag/${{ steps.get_version.outputs.version }}</releaseNotes>
+          </metadata>
+          <files>
+            <file src="tools\**" target="tools" />
+          </files>
+        </package>
+        "@ | Out-File -FilePath "choco/standby/standby.nuspec" -Encoding UTF8
+
+    - name: Pack Chocolatey package
+      shell: pwsh
+      run: |
+        choco pack "choco/standby/standby.nuspec" --outputdirectory "."
+
+    - name: Upload Chocolatey package
+      uses: actions/upload-artifact@v4
+      with:
+        name: choco-package
+        path: standby.${{ steps.get_version.outputs.clean_version }}.nupkg
+
+  publish-scoop:
+    name: Publish to Scoop
+    needs: create-scoop-manifest
+    runs-on: ubuntu-latest
+    if: github.event.repository.fork == false
+
+    steps:
+    - name: Checkout scoop bucket
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}-scoop-bucket
+        path: scoop-bucket
+        token: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+
+    - name: Download Scoop manifest
+      uses: actions/download-artifact@v4
+      with:
+        name: scoop-manifest
+        path: .
+
+    - name: Get version
+      id: get_version
+      run: |
+        VERSION=$(cat standby.json | jq -r '.version')
+        echo "version=v$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Update Scoop bucket
+      run: |
+        cd scoop-bucket
+        cp ../standby.json bucket/
+
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add bucket/standby.json
+
+        if git diff --staged --quiet; then
+          echo "No changes to manifest"
+        else
+          git commit -m "Update standby to ${{ steps.get_version.outputs.version }}"
+          git push
+        fi
+
+  publish-choco:
+    name: Publish to Chocolatey
+    needs: create-choco-package
+    runs-on: windows-latest
+    if: github.event.repository.fork == false
+
+    steps:
+    - name: Download Chocolatey package
+      uses: actions/download-artifact@v4
+      with:
+        name: choco-package
+        path: .
+
+    - name: Get version
+      id: get_version
+      shell: bash
+      run: |
+        VERSION=$(ls standby.*.nupkg | sed 's/standby\.\(.*\)\.nupkg/\1/')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Publish to Chocolatey
+      shell: pwsh
+      run: |
+        choco push "standby.${{ steps.get_version.outputs.version }}.nupkg" --api-key "${{ secrets.CHOCOLATEY_API_KEY }}"
