@@ -48,6 +48,33 @@ scoop install standby
 choco install standby
 ```
 
+### From AUR (Arch Linux)
+
+```bash
+# Using yay
+yay -S standby
+
+# Or manually from releases
+# Download PKGBUILD from releases
+# makepkg -si
+```
+
+### From Debian/Ubuntu Packages
+
+```bash
+# Download .deb from releases
+sudo dpkg -i standby_*.deb
+sudo apt install -f  # Install dependencies if needed
+```
+
+### AppImage (Universal Linux)
+
+```bash
+# Download AppImage from releases
+chmod +x standby-*.AppImage
+./standby-*.AppImage --help
+```
+
 ### From Source
 
 ```bash

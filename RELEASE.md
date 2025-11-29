@@ -67,6 +67,12 @@ The GitHub Actions workflow automatically:
 - Publishes to Chocolatey community repository
 - Enables `choco install standby` on Windows
 
+### 🐧 Linux Distribution Packaging
+
+- **AppImage**: Universal Linux package that runs on any distribution
+- **AUR Package**: Arch Linux package installable via `yay`
+- **DEB Package**: Debian/Ubuntu package for apt-based systems
+
 ### 🍺 Homebrew Publishing (Optional)
 
 - Generates a Homebrew formula with correct URLs and hashes
@@ -105,6 +111,9 @@ The GitHub Actions workflow automatically:
    - Go to repository Settings → Secrets and variables → Actions
    - Add `CHOCOLATEY_API_KEY` with your API key
 
+### Linux Packaging
+No additional setup required - Linux packages are automatically generated and attached to releases.
+
 ## Setting Up Homebrew Publishing
 
 ### Option 1: Personal Homebrew Tap
@@ -134,6 +143,9 @@ Each release includes:
 
 - **Binaries**: Pre-compiled executables for all supported platforms
 - **Checksums**: SHA256 verification files
+- **AppImage**: Universal Linux package
+- **AUR Package**: Arch Linux package files (PKGBUILD, .SRCINFO)
+- **DEB Package**: Debian/Ubuntu package
 - **Homebrew formula**: Ready-to-use formula for easy installation
 
 ## Version Numbering
@@ -161,8 +173,11 @@ The release process is split into separate workflows:
 - ✅ Automated releases
 - ✅ Cross-platform binaries
 - ✅ Crates.io publishing
-
-#### **Release Homebrew** (`release-homebrew.yml`)
+- ✅ AppImage creation (universal Linux)
+- ✅ AUR package generation (Arch Linux)
+- ✅ DEB package creation (Debian/Ubuntu)
+- ✅ Scoop manifest generation
+- ✅ Chocolatey package creation
 - ✅ Homebrew formula generation
 - ✅ Optional tap/core publishing
 
@@ -221,7 +236,32 @@ choco pack standby.nuspec
 choco push standby.x.x.x.nupkg --api-key your-api-key
 ```
 
-### 6. Update Homebrew formula manually
+### 6. Create Linux packages manually
+
+#### AppImage
+```bash
+# Download appimagetool
+wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+chmod +x appimagetool
+
+# Create AppDir structure and build AppImage
+# (See workflow for detailed steps)
+```
+
+#### AUR Package
+```bash
+# Create PKGBUILD and .SRCINFO files
+# Upload to AUR or personal repository
+```
+
+#### DEB Package
+```bash
+# Create Debian package structure
+mkdir -p package/usr/bin
+# Add control file, copy binary, build with dpkg-deb
+```
+
+### 7. Update Homebrew formula manually
 
 - Generate SHA256 hashes for binaries
 - Update formula URLs and checksums
