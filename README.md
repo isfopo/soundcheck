@@ -1,8 +1,8 @@
-# Standby 🎵
+# Soundcheck 🎵
 
 A terminal-based audio monitoring application that displays real-time audio levels and exits when sound exceeds a specified threshold.
 
-![Demo](https://via.placeholder.com/800x400/333/fff?text=Standby+Audio+Monitor)
+![Demo](https://via.placeholder.com/800x400/333/fff?text=Soundcheck+Audio+Monitor)
 
 ## Features ✨
 
@@ -18,42 +18,42 @@ A terminal-based audio monitoring application that displays real-time audio leve
 ### From Crates.io
 
 ```bash
-cargo install standby
+cargo install soundcheck
 ```
 
 ### From Homebrew
 
 ```bash
 # Option 1: Direct install (when formula is in homebrew-core)
-brew install standby
+brew install soundcheck
 
 # Option 2: From personal tap
-brew tap username/standby-homebrew-tap
-brew install standby
+brew tap username/soundcheck-homebrew-tap
+brew install soundcheck
 ```
 
 ### From Scoop (Windows)
 
 ```bash
 # Add the bucket
-scoop bucket add username-scoop-bucket https://github.com/username/standby-scoop-bucket
+scoop bucket add username-scoop-bucket https://github.com/username/soundcheck-scoop-bucket
 
-# Install standby
-scoop install standby
+# Install soundcheck
+scoop install soundcheck
 ```
 
 ### From Chocolatey (Windows)
 
 ```bash
-# Install standby
-choco install standby
+# Install soundcheck
+choco install soundcheck
 ```
 
 ### From AUR (Arch Linux)
 
 ```bash
 # Using yay
-yay -S standby
+yay -S soundcheck
 
 # Or manually from releases
 # Download PKGBUILD from releases
@@ -64,7 +64,7 @@ yay -S standby
 
 ```bash
 # Download .deb from releases
-sudo dpkg -i standby_*.deb
+sudo dpkg -i soundcheck_*.deb
 sudo apt install -f  # Install dependencies if needed
 ```
 
@@ -72,17 +72,17 @@ sudo apt install -f  # Install dependencies if needed
 
 ```bash
 # Download AppImage from releases
-chmod +x standby-*.AppImage
-./standby-*.AppImage --help
+chmod +x soundcheck-*.AppImage
+./soundcheck-*.AppImage --help
 ```
 
 ### From Source
 
 ```bash
 git clone <repository-url>
-cd standby
+cd soundcheck
 cargo build --release
-# Binary will be at target/release/standby
+# Binary will be at target/release/soundcheck
 ```
 
 ## Contributing & Development 🤝
@@ -97,16 +97,16 @@ For detailed information about creating and publishing releases, see [RELEASE.md
 
 ```bash
 # Monitor with default settings (-20 dB threshold)
-standby
+soundcheck
 
 # Set custom threshold
-standby --threshold -30
+soundcheck --threshold -30
 
 # Specify audio device
-standby --device "MacBook Pro Microphone"
+soundcheck --device "MacBook Pro Microphone"
 
 # Combine options
-standby --threshold -25 --device "External USB Audio"
+soundcheck --threshold -25 --device "External USB Audio"
 ```
 
 ### Command Line Options
@@ -120,13 +120,13 @@ standby --threshold -25 --device "External USB Audio"
 
 ```bash
 # Continue to next command only if threshold reached
-standby && echo "Audio detected!"
+soundcheck && echo "Audio detected!"
 
 # Run fallback command if user exits
-standby || echo "Monitoring cancelled by user"
+soundcheck || echo "Monitoring cancelled by user"
 
 # Error handling
-standby || echo "Failed to start monitoring"
+soundcheck || echo "Failed to start monitoring"
 ```
 
 ## Requirements 📋
@@ -196,7 +196,7 @@ cargo fmt
 
 **"Device not found"**
 
-- Use `standby --help` to see available options
+- Use `soundcheck --help` to see available options
 - Verify the device name spelling
 
 **Blank screen on startup**

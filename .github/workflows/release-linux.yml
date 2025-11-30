@@ -52,11 +52,11 @@ jobs:
         cp standby AppDir/usr/bin/
 
         # Create desktop file
-        cat > AppDir/usr/share/applications/standby.desktop << EOF
+        cat > AppDir/usr/share/applications/soundcheck.desktop << EOF
 [Desktop Entry]
-Name=Standby
-Exec=standby
-Icon=standby
+Name=Soundcheck
+Exec=soundcheck
+Icon=soundcheck
 Type=Application
 Categories=Audio;Utility;
 Terminal=true
@@ -123,13 +123,13 @@ EOF
 
     - name: Create AUR package structure
       run: |
-        mkdir -p aur-standby
-        cd aur-standby
+        mkdir -p aur-soundcheck
+        cd aur-soundcheck
 
         # Create PKGBUILD
         cat > PKGBUILD << EOF
 # Maintainer: ${GITHUB_REPOSITORY_OWNER} <${GITHUB_REPOSITORY_OWNER}@users.noreply.github.com>
-pkgname=standby
+pkgname=soundcheck
 pkgver=${{ steps.get_version.outputs.clean_version }}
 pkgrel=1
 pkgdesc="Terminal-based audio monitoring application"
@@ -149,7 +149,7 @@ EOF
 
         # Create .SRCINFO
         cat > .SRCINFO << EOF
-pkgbase = standby
+pkgbase = soundcheck
 	pkgdesc = Terminal-based audio monitoring application
 	pkgver = ${{ steps.get_version.outputs.clean_version }}
 	pkgrel = 1
@@ -160,14 +160,14 @@ pkgbase = standby
 	source = standby-${{ steps.get_version.outputs.clean_version }}.tar.gz::https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/standby-x86_64-unknown-linux-gnu.tar.gz
 	sha256sums = ${{ steps.sha256.outputs.sha }}
 
-pkgname = standby
+	pkgname = soundcheck
 EOF
 
-    - name: Upload AUR package
-      uses: actions/upload-artifact@v4
-      with:
-        name: aur-package
-        path: aur-standby/
+      - name: Upload AUR package
+        uses: actions/upload-artifact@v4
+        with:
+          name: aur-package
+          path: aur-soundcheck/
 
   create-deb-package:
     name: Create Debian Package
@@ -202,15 +202,15 @@ EOF
 
     - name: Create Debian package structure
       run: |
-        mkdir -p deb-package/standby-${{ steps.get_version.outputs.clean_version }}/usr/bin
-        mkdir -p deb-package/standby-${{ steps.get_version.outputs.clean_version }}/DEBIAN
+        mkdir -p deb-package/soundcheck-${{ steps.get_version.outputs.clean_version }}/usr/bin
+        mkdir -p deb-package/soundcheck-${{ steps.get_version.outputs.clean_version }}/DEBIAN
 
         # Copy binary
-        cp standby deb-package/standby-${{ steps.get_version.outputs.clean_version }}/usr/bin/
+        cp soundcheck deb-package/soundcheck-${{ steps.get_version.outputs.clean_version }}/usr/bin/
 
         # Create control file
-        cat > deb-package/standby-${{ steps.get_version.outputs.clean_version }}/DEBIAN/control << EOF
-Package: standby
+        cat > deb-package/soundcheck-${{ steps.get_version.outputs.clean_version }}/DEBIAN/control << EOF
+Package: soundcheck
 Version: ${{ steps.get_version.outputs.clean_version }}-1
 Section: utils
 Priority: optional
@@ -224,13 +224,13 @@ EOF
 
         # Build .deb package
         cd deb-package
-        dpkg-deb --build standby-${{ steps.get_version.outputs.clean_version }}
+        dpkg-deb --build soundcheck-${{ steps.get_version.outputs.clean_version }}
 
-    - name: Upload Debian package
-      uses: actions/upload-artifact@v4
-      with:
-        name: deb-package
-        path: deb-package/standby-${{ steps.get_version.outputs.clean_version }}.deb
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: deb-package/soundcheck-${{ steps.get_version.outputs.clean_version }}.deb
 
   publish-linux-packages:
     name: Publish Linux Packages
@@ -242,10 +242,10 @@ EOF
     - name: Download all Linux packages
       uses: actions/download-artifact@v4
 
-    - name: Get version
-      id: get_version
-      run: |
-        VERSION=$(ls appimage-package/standby-*.AppImage | sed 's/.*standby-\(.*\)-x86_64\.AppImage/\1/')
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(ls appimage-package/soundcheck-*.AppImage | sed 's/.*soundcheck-\(.*\)-x86_64\.AppImage/\1/')
         echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
     - name: Create Linux release
@@ -253,49 +253,49 @@ EOF
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: Linux Packages ${{ steps.get_version.outputs.version }}
-        body: |
-          ## Linux Distribution Packages
+          body: |
+            ## Linux Distribution Packages
 
-          This release includes packages for various Linux distributions:
+            This release includes packages for various Linux distributions:
 
-          ### Universal
-          - **AppImage**: Run on any Linux distribution
-          - Download: `standby-*.AppImage`
+            ### Universal
+            - **AppImage**: Run on any Linux distribution
+            - Download: `soundcheck-*.AppImage`
 
-          ### Arch Linux (AUR)
-          - **AUR Package**: Install via `yay -S standby`
-          - Files: `PKGBUILD` and `.SRCINFO`
+            ### Arch Linux (AUR)
+            - **AUR Package**: Install via `yay -S soundcheck`
+            - Files: `PKGBUILD` and `.SRCINFO`
 
-          ### Debian/Ubuntu
-          - **DEB Package**: Install via `sudo dpkg -i standby-*.deb`
-          - Dependencies: `libc6`, `libasound2`
+            ### Debian/Ubuntu
+            - **DEB Package**: Install via `sudo dpkg -i soundcheck-*.deb`
+            - Dependencies: `libc6`, `libasound2`
 
-          ## Installation Instructions
+            ## Installation Instructions
 
-          ### AppImage (Universal)
-          ```bash
-          chmod +x standby-*.AppImage
-          ./standby-*.AppImage --help
-          ```
+            ### AppImage (Universal)
+            ```bash
+            chmod +x soundcheck-*.AppImage
+            ./soundcheck-*.AppImage --help
+            ```
 
-          ### Arch Linux (AUR)
-          ```bash
-          yay -S standby
-          # Or manually build:
-          # tar -xzf aur-package.tar.gz
-          # cd aur-standby
-          # makepkg -si
-          ```
+            ### Arch Linux (AUR)
+            ```bash
+            yay -S soundcheck
+            # Or manually build:
+            # tar -xzf aur-package.tar.gz
+            # cd aur-soundcheck
+            # makepkg -si
+            ```
 
-          ### Debian/Ubuntu
-          ```bash
-          sudo apt install ./standby-*.deb
-          standby --help
-          ```
+            ### Debian/Ubuntu
+            ```bash
+            sudo apt install ./soundcheck-*.deb
+            soundcheck --help
+            ```
         files: |
-          appimage-package/standby-*.AppImage
+          appimage-package/soundcheck-*.AppImage
           aur-package/PKGBUILD
           aur-package/.SRCINFO
-          deb-package/standby-*.deb
+          deb-package/soundcheck-*.deb
         draft: false
         prerelease: false

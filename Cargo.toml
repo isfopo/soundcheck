@@ -1,8 +1,8 @@
 [package]
-name = "standby"
+name = "soundcheck"
 version = "0.1.0"
 edition = "2024"
-repository = "https://github.com/isfopo/standby"
+repository = "https://github.com/isfopo/soundcheck"
 license = "MIT"
 description = "A terminal-based audio monitoring application that displays real-time audio levels and exits when sound exceeds a specified threshold."
 
