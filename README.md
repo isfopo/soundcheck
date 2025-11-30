@@ -24,28 +24,22 @@ cargo install soundcheck
 ### From Homebrew
 
 ```bash
-# Option 1: Direct install (when formula is in homebrew-core)
-brew install soundcheck
+brew tap isfopo/Tap
 
-# Option 2: From personal tap
-brew tap username/soundcheck-homebrew-tap
 brew install soundcheck
 ```
 
 ### From Scoop (Windows)
 
 ```bash
-# Add the bucket
 scoop bucket add username-scoop-bucket https://github.com/username/soundcheck-scoop-bucket
 
-# Install soundcheck
 scoop install soundcheck
 ```
 
 ### From Chocolatey (Windows)
 
 ```bash
-# Install soundcheck
 choco install soundcheck
 ```
 
@@ -54,10 +48,6 @@ choco install soundcheck
 ```bash
 # Using yay
 yay -S soundcheck
-
-# Or manually from releases
-# Download PKGBUILD from releases
-# makepkg -si
 ```
 
 ### From Debian/Ubuntu Packages
