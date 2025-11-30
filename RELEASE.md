@@ -138,20 +138,20 @@ The Homebrew tap is maintained in a separate repository (`isfopo/Tap`) for use a
 
 Each release includes:
 
-- **Binaries**: Pre-compiled executables for all supported platforms
-- **Checksums**: SHA256 verification files
-- **AppImage**: Universal Linux package
-- **AUR Package**: Arch Linux package files (PKGBUILD, .SRCINFO)
-- **DEB Package**: Debian/Ubuntu package
-- **Homebrew formula**: Ready-to-use formula for easy installation
+  - **Binaries**: Pre-compiled executables for all supported platforms
+    - **Checksums**: SHA256 verification files
+    - **AppImage**: Universal Linux package
+    - **AUR Package**: Arch Linux package files (PKGBUILD, .SRCINFO)
+    - **DEB Package**: Debian/Ubuntu package
+  - **Homebrew formula**: Ready-to-use formula for easy installation
 
 ## Version Numbering
 
 This project follows [Semantic Versioning](https://semver.org/):
 
-- **MAJOR.MINOR.PATCH** (e.g., `v1.2.3`)
-- **Pre-releases**: `v1.0.0-alpha.1`, `v1.0.0-rc.1`
-- **Tag format**: Always prefix with `v` (e.g., `v1.0.0`)
+  - **MAJOR.MINOR.PATCH** (e.g., `v1.2.3`)
+  - **Pre-releases**: `v1.0.0-alpha.1`, `v1.0.0-rc.1`
+  - **Tag format**: Always prefix with `v` (e.g., `v1.0.0`)
 
 ## CI/CD Pipeline
 
@@ -320,9 +320,9 @@ When contributing changes that affect releases:
 
 ## Security Considerations
 
-- All release binaries include SHA256 checksums
-- GitHub releases are signed by GitHub's infrastructure
-- Crates.io verifies package integrity and ownership
-- Homebrew formulas verify checksums during installation
-- Consider code signing for enhanced security (future enhancement)</content>
+  - All release binaries include SHA256 checksums
+  - GitHub releases are signed by GitHub's infrastructure
+  - Crates.io verifies package integrity and ownership
+  - Homebrew formulas verify checksums during installation
+  - Consider code signing for enhanced security (future enhancement)</content>
   <parameter name="filePath">RELEASE.md

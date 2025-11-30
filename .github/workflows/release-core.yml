@@ -23,17 +23,17 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-          target: x86_64-apple-darwin
-          name: standby-x86_64-apple-darwin.tar.gz
+            target: x86_64-apple-darwin
+            name: standby-x86_64-apple-darwin.tar.gz
           - os: macos-latest
-          target: aarch64-apple-darwin
-          name: standby-aarch64-apple-darwin.tar.gz
+            target: aarch64-apple-darwin
+            name: standby-aarch64-apple-darwin.tar.gz
           - os: ubuntu-latest
-          target: x86_64-unknown-linux-gnu
-          name: standby-x86_64-unknown-linux-gnu.tar.gz
+            target: x86_64-unknown-linux-gnu
+            name: standby-x86_64-unknown-linux-gnu.tar.gz
           - os: windows-latest
-          target: x86_64-pc-windows-msvc
-          name: standby-x86_64-pc-windows-msvc.zip
+            target: x86_64-pc-windows-msvc
+            name: standby-x86_64-pc-windows-msvc.zip
 
     steps:
       - name: Checkout code
@@ -96,9 +96,9 @@ jobs:
         id: get_version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          VERSION="${{ inputs.tag_name }}"
+            VERSION="${{ inputs.tag_name }}"
           else
-          VERSION="${GITHUB_REF#refs/tags/}"
+            VERSION="${GITHUB_REF#refs/tags/}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION: $VERSION"
@@ -108,8 +108,8 @@ jobs:
           mkdir release-assets
           for dir in artifacts/*/; do
           if [ -d "$dir" ]; then
-            mv "$dir"/*.tar.gz release-assets/ 2>/dev/null || true
-            mv "$dir"/*.zip release-assets/ 2>/dev/null || true
+          mv "$dir"/*.tar.gz release-assets/ 2>/dev/null || true
+          mv "$dir"/*.zip release-assets/ 2>/dev/null || true
           fi
           done
           ls -la release-assets/
@@ -120,17 +120,17 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
           body: |
-          ## Changes
+            ## Changes
 
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
 
-          ## Downloads
+             ## Downloads
 
-          This release includes binaries for multiple platforms:
-          - macOS (x86_64)
-          - macOS (Apple Silicon)
-          - Linux (x86_64)
-          - Windows (x86_64)
+             This release includes binaries for multiple platforms:
+             - macOS (x86_64)
+             - macOS (Apple Silicon)
+             - Linux (x86_64)
+             - Windows (x86_64)
           files: release-assets/*
           draft: false
           prerelease: false
