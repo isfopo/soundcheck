@@ -159,7 +159,7 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ github.ref_name }}"
           CLEAN_VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
