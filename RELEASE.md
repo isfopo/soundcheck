@@ -28,7 +28,7 @@ git push origin v1.0.0
 ### 3. Alternative: Manual release trigger
 
 - Go to GitHub Actions tab in your repository
-- Select "Release and Homebrew" workflow
+- Select "Release Core" workflow
 - Click "Run workflow" and enter the tag name
 
 ## What Happens During Release
@@ -55,13 +55,13 @@ The GitHub Actions workflow automatically:
 - Makes the library available for other Rust projects
 - Enables `cargo install standby` for users
 
-### 🍨 Scoop Publishing (Optional)
+### 🍨 Scoop Publishing
 
 - Creates Scoop manifest with automatic updates
 - Publishes to personal Scoop bucket
 - Enables `scoop install standby` on Windows
 
-### 🍫 Chocolatey Publishing (Optional)
+### 🍫 Chocolatey Publishing
 
 - Creates Chocolatey package (.nupkg)
 - Publishes to Chocolatey community repository
@@ -73,15 +73,17 @@ The GitHub Actions workflow automatically:
 - **AUR Package**: Arch Linux package installable via `yay`
 - **DEB Package**: Debian/Ubuntu package for apt-based systems
 
-### 🍺 Homebrew Publishing (Optional)
+### 🍺 Homebrew Publishing
 
-- Generates a Homebrew formula with correct URLs and hashes
-- Updates your personal Homebrew tap (if configured)
-- Can submit pull requests to homebrew-core (requires maintainer access)
+- Generates a Homebrew formula with correct URLs and hashes in the main repository
+- Triggers workflow in dedicated tap repository (`isfopo/Tap`)
+- Updates the shared Homebrew tap with the new formula
+- Formula available via `brew tap isfopo/Tap && brew install standby`
 
 ## Setting Up Publishing
 
 ### Crates.io Token
+
 1. **Create API token**:
    - Go to [crates.io/me](https://crates.io/me) → API Tokens
    - Click "New Token"
@@ -92,6 +94,7 @@ The GitHub Actions workflow automatically:
    - Add `CRATES_IO_TOKEN` with your API token
 
 ### Scoop Bucket Token
+
 1. **Create a Scoop bucket repository**:
 
    ```bash
@@ -103,6 +106,7 @@ The GitHub Actions workflow automatically:
    - Add `SCOOP_BUCKET_TOKEN` with a Personal Access Token (repo scope)
 
 ### Chocolatey API Key
+
 1. **Get Chocolatey API key**:
    - Sign up at [Chocolatey.org](https://chocolatey.org/)
    - Go to Account → API Keys
@@ -112,30 +116,23 @@ The GitHub Actions workflow automatically:
    - Add `CHOCOLATEY_API_KEY` with your API key
 
 ### Linux Packaging
+
 No additional setup required - Linux packages are automatically generated and attached to releases.
 
 ## Setting Up Homebrew Publishing
 
 ### Option 1: Personal Homebrew Tap
 
-1. **Create a tap repository**:
+The Homebrew tap is maintained in a separate repository (`isfopo/Tap`) for use across multiple projects.
 
-   ```bash
-   ./.github/scripts/setup-homebrew-tap.sh your-github-username
-   ```
-
-2. **Follow the setup instructions** to create the repository on GitHub
-
-3. **Add repository secret**:
+1. **Add repository secret** (in the main repository):
    - Go to repository Settings → Secrets and variables → Actions
+   - Add `TAP_REPO_TOKEN` with a Personal Access Token that has `repo` scope
+   - This token allows the main repo to trigger workflows in the tap repository
+
+2. **Add repository secret** (in the tap repository `isfopo/Tap`):
    - Add `HOMEBREW_TAP_TOKEN` with a Personal Access Token (repo scope)
-
-### Option 2: Submit to Homebrew Core
-
-1. **Get maintainer access** to [homebrew-core](https://github.com/Homebrew/homebrew-core)
-2. **Add repository secret**:
-   - Add `HOMEBREW_CORE_TOKEN` with maintainer token
-3. **Releases will automatically create PRs** to homebrew-core
+   - This allows the tap repository to push changes to itself
 
 ## Release Artifacts
 
@@ -170,18 +167,26 @@ This project follows [Semantic Versioning](https://semver.org/):
 The release process is split into separate workflows:
 
 #### **Release Core** (`release-core.yml`)
-- ✅ Automated releases
-- ✅ Cross-platform binaries
+
+- ✅ Automated GitHub releases
+- ✅ Cross-platform binaries (macOS, Linux, Windows)
 - ✅ Crates.io publishing
+- ✅ Triggers Homebrew tap updates
+
+#### **Release Homebrew** (`release-homebrew.yml` in `isfopo/Tap`)
+
+- ✅ Homebrew formula generation (triggered by main repo)
+- ✅ Shared tap updates
+- ✅ Formula committed to tap repository
+
+#### **Release Linux** (`release-linux.yml`)
+
 - ✅ AppImage creation (universal Linux)
 - ✅ AUR package generation (Arch Linux)
 - ✅ DEB package creation (Debian/Ubuntu)
-- ✅ Scoop manifest generation
-- ✅ Chocolatey package creation
-- ✅ Homebrew formula generation
-- ✅ Optional tap/core publishing
 
 #### **Release Windows** (`release-windows.yml`)
+
 - ✅ Scoop manifest generation
 - ✅ Chocolatey package creation
 - ✅ Windows package publishing
@@ -239,6 +244,7 @@ choco push standby.x.x.x.nupkg --api-key your-api-key
 ### 6. Create Linux packages manually
 
 #### AppImage
+
 ```bash
 # Download appimagetool
 wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
@@ -249,12 +255,14 @@ chmod +x appimagetool
 ```
 
 #### AUR Package
+
 ```bash
 # Create PKGBUILD and .SRCINFO files
 # Upload to AUR or personal repository
 ```
 
 #### DEB Package
+
 ```bash
 # Create Debian package structure
 mkdir -p package/usr/bin
@@ -301,12 +309,6 @@ mkdir -p package/usr/bin
 - Ensure the .nupkg file was created successfully
 - Review Chocolatey community guidelines
 
-### Formula submission to homebrew-core fails
-
-- Verify `HOMEBREW_CORE_TOKEN` has maintainer access
-- Check that the formula follows Homebrew guidelines
-- Review the PR that was created for any issues
-
 ## Contributing to Releases
 
 When contributing changes that affect releases:
@@ -323,4 +325,4 @@ When contributing changes that affect releases:
 - Crates.io verifies package integrity and ownership
 - Homebrew formulas verify checksums during installation
 - Consider code signing for enhanced security (future enhancement)</content>
-<parameter name="filePath">RELEASE.md
+  <parameter name="filePath">RELEASE.md

@@ -5,13 +5,7 @@
 
 set -e
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <github-username>"
-    echo "Example: $0 myusername"
-    exit 1
-fi
-
-USERNAME=$1
+USERNAME="isfopo"
 REPO_NAME="standby"
 BUCKET_REPO="${REPO_NAME}-scoop-bucket"
 

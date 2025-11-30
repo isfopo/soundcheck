@@ -1,6 +1,6 @@
 # Standby 🎵
 
-A terminal-based audio monitoring application that displays real-time audio levels and detects when sound exceeds a specified threshold.
+A terminal-based audio monitoring application that displays real-time audio levels and exits when sound exceeds a specified threshold.
 
 ![Demo](https://via.placeholder.com/800x400/333/fff?text=Standby+Audio+Monitor)
 
@@ -16,6 +16,7 @@ A terminal-based audio monitoring application that displays real-time audio leve
 ## Installation 🚀
 
 ### From Crates.io
+
 ```bash
 cargo install standby
 ```
@@ -87,38 +88,8 @@ cargo build --release
 ## Contributing & Development 🤝
 
 ### Release Process
+
 For detailed information about creating and publishing releases, see [RELEASE.md](RELEASE.md).
-
-### Development Setup
-```bash
-# Clone the repository
-git clone <repository-url>
-cd standby
-
-# Run tests
-cargo test
-
-# Build release version
-cargo build --release
-
-# Check code quality
-cargo clippy
-cargo fmt --check
-```
-
-### Project Structure
-```
-src/
-├── main.rs          # Application entry point
-├── app.rs           # Main application logic
-├── audio.rs         # Audio device handling
-├── ui.rs            # Terminal user interface
-├── config.rs        # Command line parsing
-├── state.rs         # Application state
-├── error.rs         # Error handling
-├── constants.rs     # Application constants
-└── smoothing.rs     # Audio level smoothing
-```
 
 ## Usage 📖
 
@@ -213,30 +184,6 @@ cargo test
 cargo clippy
 cargo fmt
 ```
-
-### Project Structure
-
-```
-src/
-├── main.rs          # Application entry point
-├── app.rs           # Main application logic
-├── audio.rs         # Audio device handling
-├── ui.rs            # Terminal user interface
-├── config.rs        # Command line parsing
-├── state.rs         # Application state
-├── error.rs         # Error handling
-├── constants.rs     # Application constants
-└── smoothing.rs     # Audio level smoothing
-```
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Run `cargo test && cargo clippy && cargo fmt`
-6. Submit a pull request
 
 ## Troubleshooting 🔍
 

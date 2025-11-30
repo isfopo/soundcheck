@@ -39,11 +39,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install system dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libasound2-dev pkg-config
+     - name: Install system dependencies (Linux)
+       if: matrix.os == 'ubuntu-latest'
+       run: |
+         sudo apt-get update
+         sudo apt-get install -y libasound2-dev libasound2 pkg-config alsa-utils
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -161,3 +161,24 @@ jobs:
       run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
       env:
         CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+  trigger-homebrew:
+    name: Trigger Homebrew Release
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: github.event.repository.fork == false
+    steps:
+    - name: Trigger Homebrew workflow
+      run: |
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.TAP_REPO_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/isfopo/Tap/dispatches \
+          -d '{
+            "event_type": "homebrew-release",
+            "client_payload": {
+              "version": "${{ github.ref_name }}",
+              "repo": "${{ github.repository }}",
+              "run_id": "${{ github.run_id }}"
+            }
+          }'
