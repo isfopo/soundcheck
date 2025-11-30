@@ -43,7 +43,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev libasound2 pkg-config alsa-utils
+          sudo apt-get install -y libasound2t64 pkg-config alsa-utils
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
