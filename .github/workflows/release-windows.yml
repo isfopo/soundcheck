@@ -106,17 +106,17 @@ jobs:
           echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
 
       - name: Download Windows binary
-        shell: pwsh
+        shell: bash
         run: |
-          Invoke-WebRequest -Uri "https://github.com/${env:GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip" -OutFile "soundcheck.zip"
-          Expand-Archive -Path "soundcheck.zip" -DestinationPath "."
+          curl -L -o soundcheck.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip"
+          unzip soundcheck.zip
 
       - name: Calculate SHA256
         id: sha256
-        shell: pwsh
+        shell: bash
         run: |
-          $hash = Get-FileHash -Path "soundcheck.exe" -Algorithm SHA256
-          echo "hash=$($hash.Hash)" >> $env:GITHUB_OUTPUT
+          HASH=$(sha256sum soundcheck.exe | awk '{print $1}')
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
 
       - name: Create Chocolatey package structure
         shell: bash
