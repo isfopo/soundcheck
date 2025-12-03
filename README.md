@@ -1,17 +1,6 @@
-# Soundcheck 🎵
+# Soundcheck
 
 A terminal-based audio monitoring application that displays real-time audio levels and exits when sound exceeds a specified threshold.
-
-![Demo](https://via.placeholder.com/800x400/333/fff?text=Soundcheck+Audio+Monitor)
-
-## Features ✨
-
-- **Real-time Audio Monitoring**: Visual bar graph showing current dB levels
-- **Threshold Detection**: Automatically exits when audio exceeds specified dB threshold
-- **Multiple Exit Methods**: Ctrl+C, Escape key, or threshold trigger
-- **Smooth Visual Updates**: 10ms refresh rate with exponential smoothing
-- **Cross-platform**: Works on macOS, Linux, and Windows
-- **Terminal UI**: Beautiful text-based interface using Ratatui
 
 ## Installation 🚀
 
@@ -29,13 +18,14 @@ brew tap isfopo/Tap
 brew install soundcheck
 ```
 
-### From Scoop (Windows)
-
-```bash
-scoop bucket add username-scoop-bucket https://github.com/username/soundcheck-scoop-bucket
-
-scoop install soundcheck
-```
+<!-- ### From Scoop (Windows) -->
+<!---->
+<!-- ```bash -->
+<!-- scoop bucket add username-scoop-bucket https://github.com/username/soundcheck-scoop-bucket -->
+<!---->
+<!-- scoop install soundcheck -->
+<!-- ``` -->
+<!---->
 
 ### From Chocolatey (Windows)
 
@@ -43,28 +33,29 @@ scoop install soundcheck
 choco install soundcheck
 ```
 
-### From AUR (Arch Linux)
-
-```bash
-# Using yay
-yay -S soundcheck
-```
-
-### From Debian/Ubuntu Packages
-
-```bash
-# Download .deb from releases
-sudo dpkg -i soundcheck_*.deb
-sudo apt install -f  # Install dependencies if needed
-```
-
-### AppImage (Universal Linux)
-
-```bash
-# Download AppImage from releases
-chmod +x soundcheck-*.AppImage
-./soundcheck-*.AppImage --help
-```
+<!-- ### From AUR (Arch Linux) -->
+<!---->
+<!-- ```bash -->
+<!-- # Using yay -->
+<!-- yay -S soundcheck -->
+<!-- ``` -->
+<!---->
+<!-- ### From Debian/Ubuntu Packages -->
+<!---->
+<!-- ```bash -->
+<!-- # Download .deb from releases -->
+<!-- sudo dpkg -i soundcheck_*.deb -->
+<!-- sudo apt install -f  # Install dependencies if needed -->
+<!-- ``` -->
+<!---->
+<!-- ### AppImage (Universal Linux) -->
+<!---->
+<!-- ```bash -->
+<!-- # Download AppImage from releases -->
+<!-- chmod +x soundcheck-*.AppImage -->
+<!-- ./soundcheck-*.AppImage --help -->
+<!-- ``` -->
+<!---->
 
 ### From Source
 
@@ -86,24 +77,24 @@ For detailed information about creating and publishing releases, see [RELEASE.md
 ### Basic Usage
 
 ```bash
-# Monitor with default settings (-20 dB threshold)
+# Monitor with default settings (0 dB threshold)
 soundcheck
 
 # Set custom threshold
-soundcheck --threshold -30
+soundcheck --threshold=-10
 
 # Specify audio device
-soundcheck --device "MacBook Pro Microphone"
+soundcheck --device="MacBook Pro Microphone"
 
 # Combine options
-soundcheck --threshold -25 --device "External USB Audio"
+soundcheck --threshold=-25 --device="External USB Audio"
 ```
 
 ### Command Line Options
 
 | Option        | Description                      | Default        | Example                     |
 | ------------- | -------------------------------- | -------------- | --------------------------- |
-| `--threshold` | Audio threshold in dB (-60 to 0) | -20            | `--threshold -30`           |
+| `--threshold` | Audio threshold in dB (-60 to 0) | 0              | `--threshold -30`           |
 | `--device`    | Audio input device name          | Default device | `--device "USB Microphone"` |
 
 ### Command Chaining Examples
@@ -127,11 +118,6 @@ soundcheck || echo "Failed to start monitoring"
 - **Linux**: Kernel 3.16+ with ALSA
 - **Windows**: Windows 10+ with WASAPI
 
-### Audio Hardware
-
-- Audio input device (microphone, line-in, etc.)
-- Proper audio permissions (especially on macOS)
-
 ### Dependencies
 
 - **Rust**: 1.70+ (for edition 2021)
@@ -139,22 +125,6 @@ soundcheck || echo "Failed to start monitoring"
   - macOS: CoreAudio
   - Linux: ALSA
   - Windows: WASAPI
-
-## Configuration ⚙️
-
-### Audio Device Selection
-
-```bash
-# List available devices (if supported by your audio library)
-# Then specify the device name
-standby --device "External Microphone (USB)"
-```
-
-### Threshold Tuning
-
-- **Quiet environments**: -30 to -40 dB
-- **Normal conversation**: -20 to -25 dB
-- **Loud music/events**: -10 to -15 dB
 
 ## Development 🛠️
 
@@ -219,6 +189,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Clap](https://github.com/clap-rs/clap) - Command line parsing
 
 ---
-
-**Made with ❤️ using Rust**</content>
-<parameter name="filePath">README.md
