@@ -13,7 +13,7 @@ cargo install soundcheck
 ### From Homebrew
 
 ```bash
-brew tap isfopo/Tap
+brew tap isfopo/homebrew-tap
 
 brew install soundcheck
 ```
