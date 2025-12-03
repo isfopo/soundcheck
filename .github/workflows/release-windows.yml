@@ -119,48 +119,46 @@ jobs:
           echo "hash=$($hash.Hash)" >> $env:GITHUB_OUTPUT
 
       - name: Create Chocolatey package structure
-        shell: pwsh
+        shell: bash
         run: |
           # Create directory structure
-          New-Item -ItemType Directory -Path "choco/soundcheck/tools" -Force
+          mkdir -p choco/soundcheck/tools
 
           # Create chocolateyinstall.ps1
-          @"
+          cat <<EOF > choco/soundcheck/tools/chocolateyinstall.ps1
           \$ErrorActionPreference = 'Stop'
 
           \$toolsDir = Split-Path -Parent \$MyInvocation.MyCommand.Definition
           \$packageDir = Split-Path -Parent \$toolsDir
 
-          \$url64 = 'https://github.com/${env:GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip'
+          \$url64 = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip'
           \$checksum64 = '${{ steps.sha256.outputs.hash }}'
           \$checksumType64 = 'sha256'
 
           Install-ChocolateyZipPackage -PackageName 'soundcheck' -Url64bit \$url64 -UnzipLocation \$packageDir -Checksum64 \$checksum64 -ChecksumType64 \$checksumType64
-           "@ | Out-File -FilePath "choco/soundcheck/tools/chocolateyinstall.ps1" -Encoding UTF8
+          EOF
 
-           $repoOwner = '${{ github.repository_owner }}'
-
-           # Create soundcheck.nuspec
-          @"
+          # Create soundcheck.nuspec
+          cat <<EOF > choco/soundcheck/soundcheck.nuspec
           <?xml version="1.0" encoding="utf-8"?>
           <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
           <metadata>
               <id>soundcheck</id>
               <version>${{ steps.get_version.outputs.clean_version }}</version>
               <title>Soundcheck</title>
-               <authors>$repoOwner</authors>
+              <authors>${{ github.repository_owner }}</authors>
               <description xml:space="preserve">Terminal-based audio monitoring application that displays real-time audio levels and detects when sound exceeds a specified threshold.</description>
-              <projectUrl>https://github.com/${env:GITHUB_REPOSITORY}</projectUrl>
-              <licenseUrl>https://github.com/${env:GITHUB_REPOSITORY}/blob/main/LICENSE</licenseUrl>
+              <projectUrl>https://github.com/${{ github.repository }}</projectUrl>
+              <licenseUrl>https://github.com/${{ github.repository }}/blob/main/LICENSE</licenseUrl>
               <requireLicenseAcceptance>false</requireLicenseAcceptance>
               <tags>audio monitoring terminal cli rust</tags>
-              <releaseNotes>https://github.com/${env:GITHUB_REPOSITORY}/releases/tag/${{ steps.get_version.outputs.version }}</releaseNotes>
+              <releaseNotes>https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.version }}</releaseNotes>
             </metadata>
             <files>
               <file src="tools\**" target="tools" />
             </files>
           </package>
-          "@ | Out-File -FilePath "choco/soundcheck/soundcheck.nuspec" -Encoding UTF8
+          EOF
 
       - name: Pack Chocolatey package
         shell: pwsh
