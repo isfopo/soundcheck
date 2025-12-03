@@ -138,7 +138,7 @@ jobs:
 
   publish-crate:
     name: Publish to Crates.io
-    needs: build
+    needs: create-release
     runs-on: ubuntu-latest
     if: github.event.repository.fork == false
     environment: crates-io
