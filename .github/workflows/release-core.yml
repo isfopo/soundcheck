@@ -212,9 +212,11 @@ jobs:
           }'
 
   trigger-scoop:
+    name: Trigger Scoop Release
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger bucket update
+      - name: Trigger Scoop workflow
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.SCOOP_BUCKET_TOKEN }}" \
