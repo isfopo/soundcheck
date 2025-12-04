@@ -24,16 +24,16 @@ jobs:
         include:
           - os: macos-latest
             target: x86_64-apple-darwin
-            name: soundcheck-x86_64-apple-darwin.tar.gz
+            name: ${{ github.repository }}-x86_64-apple-darwin.tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: soundcheck-aarch64-apple-darwin.tar.gz
+            name: ${{ github.repository }}-aarch64-apple-darwin.tar.gz
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: soundcheck-x86_64-unknown-linux-gnu.tar.gz
+            name: ${{ github.repository }}-x86_64-unknown-linux-gnu.tar.gz
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: soundcheck-x86_64-pc-windows-msvc.zip
+            name: ${{ github.repository }}-x86_64-pc-windows-msvc.zip
 
     steps:
       - name: Checkout code
@@ -60,14 +60,14 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          tar -czf ../../../${{ matrix.name }} soundcheck
+          tar -czf ../../../${{ matrix.name }} ${{ github.repository }}
           cd ../../..
 
       - name: Package binary (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../${{ matrix.name }} soundcheck.exe
+          7z a ../../../${{ matrix.name }} ${{ github.repository }}.exe
           cd ../../..
 
       - name: Upload artifacts
@@ -210,3 +210,22 @@ jobs:
               "run_id": "${{ github.run_id }}"
             }
           }'
+
+  trigger-scoop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger bucket update
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.SCOOP_BUCKET_TOKEN }}" \
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/isfopo/scoop-bucket/dispatches \
+            -d '{
+              "event_type": "scoop-update",
+              "client_payload": {
+                "version": "${{ github.event.inputs.tag_name }}",
+                "repo": "${{ github.repository }}",
+                "run_id": "${{ github.run_id }}"
+              }
+            }'

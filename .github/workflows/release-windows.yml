@@ -10,78 +10,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  create-scoop-manifest:
-    name: Create Scoop Manifest
-    runs-on: ubuntu-latest
-    if: false || github.event.workflow_run.conclusion == 'success'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version from workflow run
-        id: get_version
-        run: |
-          # Get the tag from the triggering workflow
-          TAG=$(curl -s "${{ github.event.workflow_run.artifacts_url }}" | jq -r '.artifacts[0].name' | sed 's/binaries-.*//')
-          if [ -z "$TAG" ]; then
-            # Fallback: get latest tag
-            TAG=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
-          fi
-          CLEAN_VERSION="${TAG#v}"
-          echo "version=$TAG" >> $GITHUB_OUTPUT
-          echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Download Windows binary
-        run: |
-          wget -O soundcheck.zip "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip"
-          unzip oundcheck.zip
-          ls -la
-
-      - name: Calculate SHA256
-        id: sha256
-        run: |
-          if command -v sha256sum >/dev/null 2>&1; then
-            HASH=$(sha256sum soundcheck.exe | cut -d' ' -f1)
-          else
-            HASH=$(shasum -a 256 soundcheck.exe | cut -d' ' -f1)
-          fi
-          echo "hash=$HASH" >> $GITHUB_OUTPUT
-
-      - name: Create Scoop manifest
-        run: |
-          cat > soundcheck.json << EOF
-          {
-              "version": "${{ steps.get_version.outputs.clean_version }}",
-              "description": "Terminal-based audio monitoring application",
-              "homepage": "https://github.com/${GITHUB_REPOSITORY}",
-              "license": "MIT",
-              "architecture": {
-                  "64bit": {
-                      "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip",
-                      "hash": "${{ steps.sha256.outputs.hash }}",
-                      "bin": "soundcheck.exe"
-                  }
-              },
-              "checkver": {
-                  "github": "${GITHUB_REPOSITORY}"
-              },
-              "autoupdate": {
-                  "architecture": {
-                      "64bit": {
-                          "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/v\$version/soundcheck-x86_64-pc-windows-msvc.zip"
-                      }
-                  }
-              }
-          }
-          EOF
-
-      - name: Upload Scoop manifest
-        uses: actions/upload-artifact@v4
-        with:
-          name: scoop-manifest
-          path: soundcheck.json
-
   create-choco-package:
     name: Create Chocolatey Package
     runs-on: windows-latest
@@ -108,44 +36,44 @@ jobs:
       - name: Download Windows binary
         shell: bash
         run: |
-          curl -L -o soundcheck.zip "https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip"
-          unzip soundcheck.zip
+          curl -L -o ${{ github.repository }}.zip "https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/${{ github.repository }}-x86_64-pc-windows-msvc.zip"
+          unzip ${{ github.repository }}.zip
 
       - name: Calculate SHA256
         id: sha256
         shell: bash
         run: |
-          HASH=$(sha256sum soundcheck.exe | awk '{print $1}')
+          HASH=$(sha256sum ${{ github.repository }}.exe | awk '{print $1}')
           echo "hash=$HASH" >> $GITHUB_OUTPUT
 
       - name: Create Chocolatey package structure
         shell: bash
         run: |
           # Create directory structure
-          mkdir -p choco/soundcheck/tools
+          mkdir -p choco/${{ github.repository }}/tools
 
           # Create chocolateyinstall.ps1
-          cat <<EOF > choco/soundcheck/tools/chocolateyinstall.ps1
+          cat <<EOF > choco/${{ github.repository }}/tools/chocolateyinstall.ps1
           \$ErrorActionPreference = 'Stop'
 
           \$toolsDir = Split-Path -Parent \$MyInvocation.MyCommand.Definition
           \$packageDir = Split-Path -Parent \$toolsDir
 
-          \$url64 = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/soundcheck-x86_64-pc-windows-msvc.zip'
+          \$url64 = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/${{ github.repository }}-x86_64-pc-windows-msvc.zip'
           \$checksum64 = '${{ steps.sha256.outputs.hash }}'
           \$checksumType64 = 'sha256'
 
-          Install-ChocolateyZipPackage -PackageName 'soundcheck' -Url64bit \$url64 -UnzipLocation \$packageDir -Checksum64 \$checksum64 -ChecksumType64 \$checksumType64
+          Install-ChocolateyZipPackage -PackageName '${{ github.repository }}' -Url64bit \$url64 -UnzipLocation \$packageDir -Checksum64 \$checksum64 -ChecksumType64 \$checksumType64
           EOF
 
-          # Create soundcheck.nuspec
-          cat <<EOF > choco/soundcheck/soundcheck.nuspec
+          # Create ${{ github.repository }}.nuspec
+          cat <<EOF > choco/${{ github.repository }}/${{ github.repository }}.nuspec
           <?xml version="1.0" encoding="utf-8"?>
           <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
           <metadata>
-              <id>soundcheck</id>
+              <id>${{ github.repository }}</id>
               <version>${{ steps.get_version.outputs.clean_version }}</version>
-              <title>Soundcheck</title>
+              <title>${{ github.repository }}</title>
               <authors>${{ github.repository_owner }}</authors>
               <description xml:space="preserve">Terminal-based audio monitoring application that displays real-time audio levels and detects when sound exceeds a specified threshold.</description>
               <projectUrl>https://github.com/${{ github.repository }}</projectUrl>
@@ -163,55 +91,13 @@ jobs:
       - name: Pack Chocolatey package
         shell: pwsh
         run: |
-          choco pack --version ${{ steps.get_version.outputs.version }} "choco/soundcheck/soundcheck.nuspec" --outputdirectory "."
+          choco pack --version ${{ steps.get_version.outputs.version }} "choco/${{ github.repository }}/.${{ github.repository }}.nuspec" --outputdirectory "."
 
       - name: Upload Chocolatey package
         uses: actions/upload-artifact@v4
         with:
           name: choco-package
-          path: soundcheck.${{ steps.get_version.outputs.clean_version }}.nupkg
-
-  publish-scoop:
-    name: Publish to Scoop
-    needs: create-scoop-manifest
-    runs-on: ubuntu-latest
-    if: false || github.event.repository.fork == false
-
-    steps:
-      - name: Checkout scoop bucket
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}-scoop-bucket
-          path: scoop-bucket
-          token: ${{ secrets.SCOOP_BUCKET_TOKEN }}
-
-      - name: Download Scoop manifest
-        uses: actions/download-artifact@v4
-        with:
-          name: scoop-manifest
-          path: .
-
-      - name: Get version
-        id: get_version
-        run: |
-          VERSION=$(cat soundcheck.json | jq -r '.version')
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Update Scoop bucket
-        run: |
-          cd scoop-bucket
-          cp ../soundcheck.json bucket/
-
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add bucket/soundcheck.json
-
-          if git diff --staged --quiet; then
-            echo "No changes to manifest"
-          else
-            git commit -m "Update soundcheck to ${{ steps.get_version.outputs.version }}"
-            git push
-          fi
+          path: ${{ github.repository }}.${{ steps.get_version.outputs.clean_version }}.nupkg
 
   publish-choco:
     name: Publish to Chocolatey
@@ -230,10 +116,10 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          VERSION=$(ls soundcheck.*.nupkg | sed 's/soundcheck\.\(.*\)\.nupkg/\1/')
+          VERSION=$(ls ${{ github.repository }}.*.nupkg | sed 's/s${{ github.repository }}\.\(.*\)\.nupkg/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Publish to Chocolatey
         shell: pwsh
         run: |
-          choco push "soundcheck.${{ steps.get_version.outputs.version }}.nupkg" --api-key "${{ secrets.CHOCOLATEY_API_KEY }}" --source="'https://push.chocolatey.org/'"
+          choco push "${{ github.repository }}.${{ steps.get_version.outputs.version }}.nupkg" --api-key "${{ secrets.CHOCOLATEY_API_KEY }}" --source="'https://push.chocolatey.org/'"
