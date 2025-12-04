@@ -24,16 +24,16 @@ jobs:
         include:
           - os: macos-latest
             target: x86_64-apple-darwin
-            name: ${{ github.repository }}-x86_64-apple-darwin.tar.gz
+            name: ${{ github.event.repository.name }}-x86_64-apple-darwin.tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: ${{ github.repository }}-aarch64-apple-darwin.tar.gz
+            name: ${{ github.event.repository.name }}-aarch64-apple-darwin.tar.gz
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: ${{ github.repository }}-x86_64-unknown-linux-gnu.tar.gz
+            name: ${{ github.event.repository.name }}-x86_64-unknown-linux-gnu.tar.gz
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: ${{ github.repository }}-x86_64-pc-windows-msvc.zip
+            name: ${{ github.event.repository.name }}-x86_64-pc-windows-msvc.zip
 
     steps:
       - name: Checkout code
@@ -60,14 +60,14 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          tar -czf ../../../${{ matrix.name }} ${{ github.repository }}
+          tar -czf ../../../${{ matrix.name }} ${{ github.event.repository.name }}
           cd ../../..
 
       - name: Package binary (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../${{ matrix.name }} ${{ github.repository }}.exe
+          7z a ../../../${{ matrix.name }} ${{ github.event.repository.name }}.exe
           cd ../../..
 
       - name: Upload artifacts
@@ -123,7 +123,7 @@ jobs:
           body: |
             ## Changes
 
-             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+             See [CHANGELOG.md](https://github.com/${{ github.event.repository.name }}/blob/main/CHANGELOG.md) for details.
 
              ## Downloads
 
@@ -206,7 +206,7 @@ jobs:
             "event_type": "homebrew-release",
             "client_payload": {
               "version": "${{ github.event.inputs.tag_name }}",
-              "repo": "${{ github.repository }}",
+              "repo": "${{ github.event.repository.name }}",
               "run_id": "${{ github.run_id }}"
             }
           }'
@@ -225,7 +225,7 @@ jobs:
               "event_type": "scoop-update",
               "client_payload": {
                 "version": "${{ github.event.inputs.tag_name }}",
-                "repo": "${{ github.repository }}",
+                "repo": "${{ github.event.repository.name }}",
                 "run_id": "${{ github.run_id }}"
               }
             }'
