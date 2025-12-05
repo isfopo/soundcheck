@@ -123,7 +123,7 @@ jobs:
           body: |
             ## Changes
 
-             See [CHANGELOG.md](https://github.com/${{ github.event.repository.name }}/blob/main/CHANGELOG.md) for details.
+             See [CHANGELOG.md](https://github.com/${{ github.event.repository.name_owner }}/${{ github.event.repository.name }}/blob/main/CHANGELOG.md) for details.
 
              ## Downloads
 
@@ -204,7 +204,7 @@ jobs:
       - name: Download Windows binary
         shell: bash
         run: |
-          curl -L -o ${{ github.event.repository.name }}.zip "https://github.com/${{ github.event.repository.name }}/releases/download/${{ inputs.tag_name }}/${{ github.event.repository.name }}-x86_64-pc-windows-msvc.zip"
+          curl -L -o ${{ github.event.repository.name }}.zip "https://github.com/${{ github.event.repository.name_owner }}/${{ github.event.repository.name }}/releases/download/${{ inputs.tag_name }}/${{ github.event.repository.name }}-x86_64-pc-windows-msvc.zip"
           unzip ${{ github.event.repository.name }}.zip
 
       - name: Calculate SHA256
