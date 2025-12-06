@@ -60,7 +60,7 @@ choco install soundcheck
 ### From Source
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/isfopo/soundcheck.git
 cd soundcheck
 cargo build --release
 # Binary will be at target/release/soundcheck
