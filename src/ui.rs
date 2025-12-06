@@ -134,10 +134,8 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
 
     // Threshold indicator
     let width = chunks[2].width as usize;
-    let threshold_pos =
-        (((state.threshold_db as f32 + 60.0) / 60.0).clamp(0.0, 1.0) * (width - 2) as f32) as usize;
     let mut bar = String::new();
-    for i in 0..(width - 2) {
+    for _ in 0..(width - 2) {
         bar.push('─');
     }
 
