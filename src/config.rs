@@ -86,6 +86,7 @@ mod tests {
     fn test_db_to_linear_conversion() {
         let config = Config {
             threshold_db: 0,
+            min_db: -60.0,
             device_name: None,
         };
         // 0 dB should convert to amplitude of 1.0
