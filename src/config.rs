@@ -7,8 +7,8 @@ use clap::Parser;
 #[command(name = "standby")]
 #[command(about = "Monitor audio threshold from input device")]
 pub struct Args {
-    /// Audio threshold in dB (e.g., -20)
-    #[arg(long)]
+    /// Audio threshold in dB (e.g., 0)
+    #[arg(long, default_value_t = crate::constants::audio::DEFAULT_THRESHOLD_DB)]
     pub threshold: i32,
 
     /// Audio input device name (optional, uses default if not specified)
@@ -57,11 +57,11 @@ mod tests {
         // This would require setting up clap test arguments
         // For now, we'll test the validation logic manually
         let config = Config {
-            threshold_db: -20,
+            threshold_db: 0,
             device_name: Some("test_device".to_string()),
         };
 
-        assert_eq!(config.threshold_db, -20);
+        assert_eq!(config.threshold_db, 0);
         assert_eq!(config.device_name, Some("test_device".to_string()));
         assert!(config.linear_threshold() > 0.0);
     }

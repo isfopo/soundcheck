@@ -8,6 +8,8 @@ pub mod audio {
     pub const DEFAULT_CHANNELS: u16 = 1;
     /// Minimum dB level
     pub const MIN_DB_LEVEL: f32 = -60.0;
+    /// Default threshold dB level
+    pub const DEFAULT_THRESHOLD_DB: i32 = 0;
     /// Buffer size for audio streams
     pub const BUFFER_SIZE: cpal::BufferSize = cpal::BufferSize::Default;
 }
