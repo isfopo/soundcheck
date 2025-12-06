@@ -57,7 +57,8 @@ impl App {
     pub async fn run(mut self) -> RunResult {
         // Setup audio
         let (device, audio_config) =
-            match audio::setup_audio_device(self.config.device_name.clone(), &self.config.channels) {
+            match audio::setup_audio_device(self.config.device_name.clone(), &self.config.channels)
+            {
                 Ok(result) => result,
                 Err(e) => {
                     return RunResult {
@@ -73,7 +74,11 @@ impl App {
         let (current_db, smoothed_db, display_db, threshold_reached) = shared_state.audio_refs();
 
         // Create app state
-        let mut app_state = AppState::new(device_name, self.config.threshold_db, self.config.channels.len());
+        let mut app_state = AppState::new(
+            device_name,
+            self.config.threshold_db,
+            self.config.channels.len(),
+        );
 
         // Build audio stream
         let audio_callback = audio::create_audio_callback(

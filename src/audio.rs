@@ -13,7 +13,10 @@ pub struct AudioConfig {
 }
 
 /// Find and configure an audio input device
-pub fn setup_audio_device(device_name: Option<String>, channels: &[usize]) -> AppResult<(cpal::Device, AudioConfig)> {
+pub fn setup_audio_device(
+    device_name: Option<String>,
+    channels: &[usize],
+) -> AppResult<(cpal::Device, AudioConfig)> {
     // Setup audio
     let host = cpal::default_host();
 
@@ -36,11 +39,12 @@ pub fn setup_audio_device(device_name: Option<String>, channels: &[usize]) -> Ap
         .ok_or_else(|| AppError::AudioDevice("No supported input configs found".to_string()))?;
 
     // Use the minimum sample rate as default, or a common rate if available
-    let sample_rate = if config_range.min_sample_rate().0 <= 44100 && config_range.max_sample_rate().0 >= 44100 {
-        44100 // Prefer 44.1kHz if supported
-    } else {
-        config_range.min_sample_rate().0 // Otherwise use minimum supported
-    };
+    let sample_rate =
+        if config_range.min_sample_rate().0 <= 44100 && config_range.max_sample_rate().0 >= 44100 {
+            44100 // Prefer 44.1kHz if supported
+        } else {
+            config_range.min_sample_rate().0 // Otherwise use minimum supported
+        };
 
     // Validate selected channels
     let max_supported_channels = config_range.channels() as usize;
@@ -48,7 +52,8 @@ pub fn setup_audio_device(device_name: Option<String>, channels: &[usize]) -> Ap
         if ch >= max_supported_channels {
             return Err(AppError::AudioDevice(format!(
                 "Channel {} not supported by device config (max {})",
-                ch, max_supported_channels - 1
+                ch,
+                max_supported_channels - 1
             )));
         }
     }
@@ -101,7 +106,12 @@ pub fn create_audio_callback(
 
         for (i, &ch) in selected_channels.iter().enumerate() {
             // Extract samples for this channel
-            let channel_samples: Vec<f32> = data.iter().skip(ch).step_by(total_channels).map(|&s| s.abs()).collect();
+            let channel_samples: Vec<f32> = data
+                .iter()
+                .skip(ch)
+                .step_by(total_channels)
+                .map(|&s| s.abs())
+                .collect();
             let max_sample = channel_samples.iter().fold(0.0f32, |a, &b| a.max(b));
 
             let current_db_value = if max_sample > 0.0 {
@@ -115,10 +125,12 @@ pub fn create_audio_callback(
 
             // Apply smoothing
             let audio_smoothing = crate::constants::smoothing::AUDIO_SMOOTHING_FACTOR;
-            smoothed_vec[i] = smoothed_vec[i] * (1.0 - audio_smoothing) + current_db_value * audio_smoothing;
+            smoothed_vec[i] =
+                smoothed_vec[i] * (1.0 - audio_smoothing) + current_db_value * audio_smoothing;
 
             let display_smoothing = crate::constants::smoothing::DISPLAY_SMOOTHING_FACTOR;
-            display_vec[i] = display_vec[i] * (1.0 - display_smoothing) + smoothed_vec[i] * display_smoothing;
+            display_vec[i] =
+                display_vec[i] * (1.0 - display_smoothing) + smoothed_vec[i] * display_smoothing;
 
             // Check threshold
             if max_sample > linear_threshold {
