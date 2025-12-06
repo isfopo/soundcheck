@@ -1,6 +1,6 @@
 # Soundcheck
 
-A terminal-based audio monitoring application that displays real-time audio levels and exits when sound exceeds a specified threshold.
+A terminal-based audio monitoring application that displays real-time audio levels from selected input channels and exits when sound exceeds a specified threshold.
 
 ## Installation 🚀
 
@@ -77,7 +77,7 @@ For detailed information about creating and publishing releases, see [RELEASE.md
 ### Basic Usage
 
 ```bash
-# Monitor with default settings (0 dB threshold)
+# Monitor with default settings (0 dB threshold, channel 0)
 soundcheck
 
 # Set custom threshold
@@ -86,22 +86,35 @@ soundcheck --threshold=-10
 # Specify audio device
 soundcheck --device="MacBook Pro Microphone"
 
-# Combine options
-soundcheck --threshold=-25 --device="External USB Audio"
+# Monitor multiple channels
+soundcheck --channels 0,1
+
+# Customize dB range and channels
+soundcheck --threshold=-25 --min-db=-80 --channels 0,1,2 --device="External USB Audio"
 ```
 
 ### Command Line Options
 
-| Option        | Description                      | Default        | Example                     |
-| ------------- | -------------------------------- | -------------- | --------------------------- |
-| `--threshold` | Audio threshold in dB (-60 to 0) | 0              | `--threshold -30`           |
-| `--device`    | Audio input device name          | Default device | `--device "USB Microphone"` |
+| Option        | Description                                    | Default        | Example                        |
+| ------------- | ---------------------------------------------- | -------------- | ------------------------------ |
+| `--threshold` | Audio threshold in dB (-60 to 0)               | 0              | `--threshold -30`              |
+| `--min-db`    | Minimum dB level for display (-100 to 0)       | -60.0          | `--min-db -80`                 |
+| `--channels`  | Audio channels to monitor (comma-separated)    | [0]            | `--channels 0,1`               |
+| `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
+
+### Multi-Channel Monitoring
+
+When monitoring multiple channels, the application displays separate gauges for each channel:
+
+- **Single Channel**: Shows one gradient bar with dB labels
+- **Multiple Channels**: Displays stacked gauges, one per channel
+- **Threshold Detection**: Exits when ANY monitored channel exceeds the threshold
 
 ### Command Chaining Examples
 
 ```bash
-# Continue to next command only if threshold reached
-soundcheck && echo "Audio detected!"
+# Continue to next command only if threshold reached on any channel
+soundcheck --channels 0,1 && echo "Audio detected!"
 
 # Run fallback command if user exits
 soundcheck || echo "Monitoring cancelled by user"
@@ -168,13 +181,14 @@ cargo fmt
 
 - Check that the correct audio device is selected
 - Verify audio input permissions
+- Ensure selected channels are valid for the device
 - Test with different threshold values
 
 ### Debug Mode
 
 ```bash
 # Run with verbose output
-RUST_LOG=debug cargo run -- --threshold -20
+RUST_LOG=debug cargo run -- --threshold -20 --channels 0,1
 ```
 
 ## License 📄
