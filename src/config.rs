@@ -19,6 +19,8 @@ pub enum Commands {
     List(ListArgs),
     /// Monitor audio and report maximum levels
     Max(MaxArgs),
+    /// Monitor audio and report average levels
+    Average(AverageArgs),
 }
 
 #[derive(Parser)]
@@ -41,9 +43,6 @@ pub struct DetectArgs {
 }
 
 #[derive(Parser)]
-pub struct ListArgs {}
-
-#[derive(Parser)]
 pub struct MaxArgs {
     /// Monitoring duration in seconds (optional, runs until Enter if not specified)
     #[arg(long)]
@@ -61,6 +60,28 @@ pub struct MaxArgs {
     #[arg(long, value_delimiter = ',', default_values_t = vec![0usize])]
     pub channels: Vec<usize>,
 }
+
+#[derive(Parser)]
+pub struct AverageArgs {
+    /// Monitoring duration in seconds (optional, runs until Enter if not specified)
+    #[arg(long)]
+    pub seconds: Option<f32>,
+
+    /// Minimum dB level for display (e.g., -60)
+    #[arg(long, default_value_t = crate::constants::audio::MIN_DB_LEVEL)]
+    pub min_db: i32,
+
+    /// Audio input device name (optional, uses default if not specified)
+    #[arg(long)]
+    pub device: Option<String>,
+
+    /// Audio channels to monitor (comma-separated indices, e.g., "0,1")
+    #[arg(long, value_delimiter = ',', default_values_t = vec![0usize])]
+    pub channels: Vec<usize>,
+}
+
+#[derive(Parser)]
+pub struct ListArgs {}
 
 /// Application configuration derived from command line arguments
 pub struct Config {
@@ -122,6 +143,32 @@ impl Config {
             min_db: max_args.min_db,
             channels: max_args.channels.clone(),
             device_name: max_args.device.clone(),
+        })
+    }
+
+    /// Create configuration from average arguments
+    pub fn from_average_args(average_args: &AverageArgs) -> Result<Self, Box<dyn std::error::Error>> {
+        // Validate min_db range
+        if average_args.min_db >= 0 || average_args.min_db < -100 {
+            return Err(format!(
+                "Minimum dB must be between -100 and 0 dB, got {}",
+                average_args.min_db
+            )
+            .into());
+        }
+
+        // Validate seconds if provided
+        if let Some(seconds) = average_args.seconds {
+            if seconds <= 0.0 {
+                return Err("Seconds must be positive".into());
+            }
+        }
+
+        Ok(Config {
+            threshold_db: 0, // Dummy value for average monitoring
+            min_db: average_args.min_db,
+            channels: average_args.channels.clone(),
+            device_name: average_args.device.clone(),
         })
     }
 

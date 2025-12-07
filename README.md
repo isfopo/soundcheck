@@ -88,6 +88,12 @@ soundcheck max --seconds 5 --channels 0,1
 
 # Monitor until Enter is pressed
 soundcheck max --channels 0,1
+
+# Calculate average levels over 5 seconds
+soundcheck average --seconds 5 --channels 0,1
+
+# Calculate average until Enter is pressed
+soundcheck average --channels 0,1
 ```
 
 ### Commands
@@ -95,6 +101,7 @@ soundcheck max --channels 0,1
 - `detect`: Monitor audio levels and exit when threshold is exceeded
 - `list`: List available audio input devices
 - `max`: Monitor audio and report maximum levels detected
+- `average`: Monitor audio and report average levels detected
 
 ### Detect Command Options
 
@@ -106,6 +113,15 @@ soundcheck max --channels 0,1
 | `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
 
 ### Max Command Options
+
+| Option        | Description                                    | Default        | Example                        |
+| ------------- | ---------------------------------------------- | -------------- | ------------------------------ |
+| `--seconds`   | Monitoring duration in seconds                 | Until Enter     | `--seconds 10`                 |
+| `--min-db`    | Minimum dB level for display (-100 to 0)       | -60            | `--min-db -80`                 |
+| `--channels`  | Audio channels to monitor (comma-separated)    | [0]            | `--channels 0,1`               |
+| `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
+
+### Average Command Options
 
 | Option        | Description                                    | Default        | Example                        |
 | ------------- | ---------------------------------------------- | -------------- | ------------------------------ |

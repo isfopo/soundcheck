@@ -113,5 +113,38 @@ async fn main() {
                 }
             }
         }
+        Commands::Average(average_args) => {
+            // Create config from average args
+            let config = match config::Config::from_average_args(&average_args) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("Configuration error: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            };
+
+            // Create app
+            let mut app = match app::App::new_with_config(config) {
+                Ok(a) => a,
+                Err(e) => {
+                    eprintln!("Setup error: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            };
+
+            // Run average monitoring
+            match app.run_average(average_args.seconds).await {
+                Ok(avg_levels) => {
+                    println!("Average dB levels detected:");
+                    for (i, &level) in avg_levels.iter().enumerate() {
+                        println!("Channel {}: {:.1} dB", i, level);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error during monitoring: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            }
+        }
     }
 }
