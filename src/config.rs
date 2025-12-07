@@ -17,6 +17,8 @@ pub enum Commands {
     Detect(DetectArgs),
     /// List available audio input devices
     List(ListArgs),
+    /// Monitor audio and report maximum levels
+    Max(MaxArgs),
 }
 
 #[derive(Parser)]
@@ -40,6 +42,25 @@ pub struct DetectArgs {
 
 #[derive(Parser)]
 pub struct ListArgs {}
+
+#[derive(Parser)]
+pub struct MaxArgs {
+    /// Monitoring duration in seconds (optional, runs until Enter if not specified)
+    #[arg(long)]
+    pub time: Option<f32>,
+
+    /// Minimum dB level for display (e.g., -60)
+    #[arg(long, default_value_t = crate::constants::audio::MIN_DB_LEVEL)]
+    pub min_db: i32,
+
+    /// Audio input device name (optional, uses default if not specified)
+    #[arg(long)]
+    pub device: Option<String>,
+
+    /// Audio channels to monitor (comma-separated indices, e.g., "0,1")
+    #[arg(long, value_delimiter = ',', default_values_t = vec![0usize])]
+    pub channels: Vec<usize>,
+}
 
 /// Application configuration derived from command line arguments
 pub struct Config {
@@ -75,6 +96,32 @@ impl Config {
             min_db: detect_args.min_db,
             channels: detect_args.channels,
             device_name: detect_args.device,
+        })
+    }
+
+    /// Create configuration from max arguments
+    pub fn from_max_args(max_args: &MaxArgs) -> Result<Self, Box<dyn std::error::Error>> {
+        // Validate min_db range
+        if max_args.min_db >= 0 || max_args.min_db < -100 {
+            return Err(format!(
+                "Minimum dB must be between -100 and 0 dB, got {}",
+                max_args.min_db
+            )
+            .into());
+        }
+
+        // Validate time if provided
+        if let Some(time) = max_args.time {
+            if time <= 0.0 {
+                return Err("Time must be positive".into());
+            }
+        }
+
+        Ok(Config {
+            threshold_db: 0, // Dummy value for max monitoring
+            min_db: max_args.min_db,
+            channels: max_args.channels.clone(),
+            device_name: max_args.device.clone(),
         })
     }
 

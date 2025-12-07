@@ -80,5 +80,38 @@ async fn main() {
                 std::process::exit(app::ExitCode::Error as i32);
             }
         }
+        Commands::Max(max_args) => {
+            // Create config from max args
+            let config = match config::Config::from_max_args(&max_args) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("Configuration error: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            };
+
+            // Create app
+            let mut app = match app::App::new_with_config(config) {
+                Ok(a) => a,
+                Err(e) => {
+                    eprintln!("Setup error: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            };
+
+            // Run max monitoring
+            match app.run_max(max_args.time).await {
+                Ok(max_levels) => {
+                    println!("Maximum dB levels detected:");
+                    for (i, &level) in max_levels.iter().enumerate() {
+                        println!("Channel {}: {:.1} dB", i, level);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error during monitoring: {}", e);
+                    std::process::exit(app::ExitCode::Error as i32);
+                }
+            }
+        }
     }
 }
