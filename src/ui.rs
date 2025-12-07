@@ -58,12 +58,12 @@ pub fn create_gradient_bar(width: usize, ratio: f64) -> Line<'static> {
 }
 
 /// Create dB level labels with threshold indicator
-pub fn create_db_labels(width: usize, threshold_db: i32, min_db: f32) -> Line<'static> {
+pub fn create_db_labels(width: usize, threshold_db: i32, min_db: i32) -> Line<'static> {
     let mut spans = Vec::new();
 
     // Calculate threshold position (threshold_db ranges from min_db to 0)
-    let db_range = -min_db; // Range from min_db to 0
-    let threshold_ratio = ((threshold_db as f32 - min_db) / db_range).clamp(0.0, 1.0) as f64;
+    let db_range = -min_db as f32; // Range from min_db to 0
+    let threshold_ratio = ((threshold_db as f32 - min_db as f32) / db_range).clamp(0.0, 1.0) as f64;
     let threshold_pos = (threshold_ratio * (width - 1) as f64).round() as usize;
 
     for i in 0..width {
@@ -86,11 +86,11 @@ pub fn create_db_labels(width: usize, threshold_db: i32, min_db: f32) -> Line<'s
             "0".to_string()
         } else if i == width / 3 {
             // Show 1/3 position label
-            let third_db = min_db + (-min_db) / 3.0;
+            let third_db = min_db as f32 + (-min_db as f32) / 3.0;
             format!("{:.0}", third_db)
         } else if i == 2 * width / 3 {
             // Show 2/3 position label
-            let two_third_db = min_db + 2.0 * (-min_db) / 3.0;
+            let two_third_db = min_db as f32 + 2.0 * (-min_db as f32) / 3.0;
             format!("{:.0}", two_third_db)
         } else {
             // No label at this position
@@ -156,7 +156,7 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
         let bar_width =
             (chunks[3].width as usize).saturating_sub(crate::constants::ui::BAR_BORDER_WIDTH);
         let bar_line = create_gradient_bar(bar_width, db_ratio);
-        let label_line = create_db_labels(bar_width, state.threshold_db, min_db);
+            let label_line = create_db_labels(bar_width, state.threshold_db, state.min_db);
         let gauge = Paragraph::new(vec![bar_line, label_line]).block(
             Block::default()
                 .title(format!(
@@ -181,7 +181,7 @@ pub fn render_ui(f: &mut Frame, state: &UiState) {
             let bar_width =
                 (chunk.width as usize).saturating_sub(crate::constants::ui::BAR_BORDER_WIDTH);
             let bar_line = create_gradient_bar(bar_width, db_ratio);
-            let label_line = create_db_labels(bar_width, state.threshold_db, min_db);
+        let label_line = create_db_labels(bar_width, state.threshold_db, state.min_db);
             let gauge = Paragraph::new(vec![bar_line, label_line]).block(
                 Block::default()
                     .title(format!(

@@ -77,28 +77,32 @@ For detailed information about creating and publishing releases, see [RELEASE.md
 ### Basic Usage
 
 ```bash
-# Monitor with default settings (0 dB threshold, channel 0)
-soundcheck
+# Monitor with default settings (0 dB threshold)
+soundcheck detect
 
 # Set custom threshold
-soundcheck --threshold=-10
+soundcheck detect --threshold=-10
 
 # Specify audio device
-soundcheck --device="MacBook Pro Microphone"
+soundcheck detect --device="MacBook Pro Microphone"
 
 # Monitor multiple channels
-soundcheck --channels 0,1
+soundcheck detect --channels 0,1
 
 # Customize dB range and channels
-soundcheck --threshold=-25 --min-db=-80 --channels 0,1,2 --device="External USB Audio"
+soundcheck detect --threshold=-25 --min-db=-80 --channels 0,1 --device="External USB Audio"
 ```
 
-### Command Line Options
+### Commands
+
+- `detect`: Monitor audio levels and exit when threshold is exceeded
+
+### Detect Command Options
 
 | Option        | Description                                    | Default        | Example                        |
 | ------------- | ---------------------------------------------- | -------------- | ------------------------------ |
 | `--threshold` | Audio threshold in dB (-60 to 0)               | 0              | `--threshold -30`              |
-| `--min-db`    | Minimum dB level for display (-100 to 0)       | -60.0          | `--min-db -80`                 |
+| `--min-db`    | Minimum dB level for display (-100 to 0)       | -60            | `--min-db -80`                 |
 | `--channels`  | Audio channels to monitor (comma-separated)    | [0]            | `--channels 0,1`               |
 | `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
 
@@ -114,13 +118,13 @@ When monitoring multiple channels, the application displays separate gauges for 
 
 ```bash
 # Continue to next command only if threshold reached on any channel
-soundcheck --channels 0,1 && echo "Audio detected!"
+soundcheck detect --channels 0,1 && echo "Audio detected!"
 
 # Run fallback command if user exits
-soundcheck || echo "Monitoring cancelled by user"
+soundcheck detect || echo "Monitoring cancelled by user"
 
 # Error handling
-soundcheck || echo "Failed to start monitoring"
+soundcheck detect || echo "Failed to start monitoring"
 ```
 
 ## Requirements 📋
@@ -169,7 +173,7 @@ cargo fmt
 
 **"Device not found"**
 
-- Use `soundcheck --help` to see available options
+- Use `soundcheck detect --help` to see available options
 - Verify the device name spelling
 
 **Blank screen on startup**
@@ -188,7 +192,7 @@ cargo fmt
 
 ```bash
 # Run with verbose output
-RUST_LOG=debug cargo run -- --threshold -20 --channels 0,1
+RUST_LOG=debug cargo run -- detect --threshold -20 --channels 0,1
 ```
 
 ## License 📄
