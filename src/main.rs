@@ -102,9 +102,15 @@ async fn main() {
             // Run max monitoring
             match app.run_max(max_args.seconds).await {
                 Ok(max_levels) => {
-                    println!("Maximum dB levels detected:");
-                    for (i, &level) in max_levels.iter().enumerate() {
-                        println!("Channel {}: {:.1} dB", i, level);
+                    if max_args.quiet {
+                        for &level in &max_levels {
+                            println!("{}", level.round() as i32);
+                        }
+                    } else {
+                        println!("Maximum dB levels detected:");
+                        for (i, &level) in max_levels.iter().enumerate() {
+                            println!("Channel {}: {:.1} dB", i, level);
+                        }
                     }
                 }
                 Err(e) => {
@@ -135,9 +141,15 @@ async fn main() {
             // Run average monitoring
             match app.run_average(average_args.seconds).await {
                 Ok(avg_levels) => {
-                    println!("Average dB levels detected:");
-                    for (i, &level) in avg_levels.iter().enumerate() {
-                        println!("Channel {}: {:.1} dB", i, level);
+                    if average_args.quiet {
+                        for &level in &avg_levels {
+                            println!("{}", level.round() as i32);
+                        }
+                    } else {
+                        println!("Average dB levels detected:");
+                        for (i, &level) in avg_levels.iter().enumerate() {
+                            println!("Channel {}: {:.1} dB", i, level);
+                        }
                     }
                 }
                 Err(e) => {

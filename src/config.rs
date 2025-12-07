@@ -59,6 +59,10 @@ pub struct MaxArgs {
     /// Audio channels to monitor (comma-separated indices, e.g., "0,1")
     #[arg(long, value_delimiter = ',', default_values_t = vec![0usize])]
     pub channels: Vec<usize>,
+
+    /// Output only the integer values without labels
+    #[arg(long)]
+    pub quiet: bool,
 }
 
 #[derive(Parser)]
@@ -78,6 +82,10 @@ pub struct AverageArgs {
     /// Audio channels to monitor (comma-separated indices, e.g., "0,1")
     #[arg(long, value_delimiter = ',', default_values_t = vec![0usize])]
     pub channels: Vec<usize>,
+
+    /// Output only the integer values without labels
+    #[arg(long)]
+    pub quiet: bool,
 }
 
 #[derive(Parser)]

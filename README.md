@@ -94,6 +94,9 @@ soundcheck average --seconds 5 --channels 0,1
 
 # Calculate average until Enter is pressed
 soundcheck average --channels 0,1
+
+# Get quiet output for scripting
+soundcheck max --seconds 5 --quiet
 ```
 
 ### Commands
@@ -120,6 +123,7 @@ soundcheck average --channels 0,1
 | `--min-db`    | Minimum dB level for display (-100 to 0)       | -60            | `--min-db -80`                 |
 | `--channels`  | Audio channels to monitor (comma-separated)    | [0]            | `--channels 0,1`               |
 | `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
+| `--quiet`     | Output only integer values without labels      | false          | `--quiet`                      |
 
 ### Average Command Options
 
@@ -129,6 +133,7 @@ soundcheck average --channels 0,1
 | `--min-db`    | Minimum dB level for display (-100 to 0)       | -60            | `--min-db -80`                 |
 | `--channels`  | Audio channels to monitor (comma-separated)    | [0]            | `--channels 0,1`               |
 | `--device`    | Audio input device name                        | Default device | `--device "USB Microphone"`    |
+| `--quiet`     | Output only integer values without labels      | false          | `--quiet`                      |
 
 ### List Command
 
