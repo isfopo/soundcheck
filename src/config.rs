@@ -2,9 +2,9 @@
 
 use clap::Parser;
 
-/// Command line arguments for the standby application
+/// Command line arguments for the soundcheck application
 #[derive(Parser)]
-#[command(name = "standby")]
+#[command(name = "soundcheck")]
 #[command(about = "Monitor audio threshold from input device")]
 pub struct Args {
     /// Audio threshold in dB (e.g., 0)
