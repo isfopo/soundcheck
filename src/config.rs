@@ -155,7 +155,9 @@ impl Config {
     }
 
     /// Create configuration from average arguments
-    pub fn from_average_args(average_args: &AverageArgs) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_average_args(
+        average_args: &AverageArgs,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         // Validate min_db range
         if average_args.min_db >= 0 || average_args.min_db < -100 {
             return Err(format!(
@@ -202,7 +204,7 @@ mod tests {
         };
 
         assert_eq!(config.threshold_db, 0);
-        assert_eq!(config.min_db, -60.0);
+        assert_eq!(config.min_db, -60);
         assert_eq!(config.channels, vec![0]);
         assert_eq!(config.device_name, Some("test_device".to_string()));
         assert!(config.linear_threshold() > 0.0);
